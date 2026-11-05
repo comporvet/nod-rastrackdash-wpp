@@ -28,6 +28,7 @@ export const inboundWebhookProviders = [
   // Fase 6.7: Yampi, plataforma de venda como a Braip (yampi automation-v1,
   // certificada por migration). Liberada para todos os workspaces.
   "yampi",
+  "simplesvet",
 ] as const;
 export const inboundWebhookParserReleaseStatuses = [
   "observation_only",

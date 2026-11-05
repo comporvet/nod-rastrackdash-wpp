@@ -58,6 +58,7 @@ const automationOrigins: readonly ProviderConversionRuleOriginDto[] = [
   "automation_braip",
   "automation_roichat",
   "automation_yampi",
+  "automation_simplesvet",
 ];
 
 /**
@@ -375,6 +376,8 @@ export function RuleManage({
                     endpoint.provider === "braip") ||
                   (origin === "automation_yampi" &&
                     endpoint.provider === "yampi") ||
+                  (origin === "automation_simplesvet" &&
+                    endpoint.provider === "simplesvet") ||
                   (origin === "automation_unnichat" &&
                     endpoint.provider === "unnichat" &&
                     endpoint.eventName === rule.conversionRule.eventName) ||

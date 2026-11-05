@@ -21,6 +21,7 @@ export const integrationEndpointProviders = [
   "payt",
   "braip",
   "yampi",
+  "simplesvet",
   "unnichat",
   "umbler",
 ] as const;
@@ -60,6 +61,7 @@ export function integrationEndpointKindFor(
 export function integrationEndpointSupportedEvents(
   provider: z.infer<typeof integrationEndpointProviderSchema>,
 ): readonly string[] {
+  if (provider === "simplesvet") return ["Purchase"];
   return isSalesPlatformProvider(provider)
     ? salesPlatformEventNames
     : integrationEndpointAutomationEvents[provider];

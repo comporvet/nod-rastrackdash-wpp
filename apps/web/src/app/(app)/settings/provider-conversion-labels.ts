@@ -187,6 +187,12 @@ export function executionReasonLabel(reasonCode: string | null): string {
       "Aviso da Yampi incompleto (telefone, valor ou data)",
     yampi_automation_v1_not_purchase: "Não é um pedido pago da Yampi",
     yampi_automation_v1_event_not_in_rule: "Evento da Yampi fora desta regra",
+    simplesvet_purchase_identity_missing: "Venda do SimplesVet sem identificador",
+    simplesvet_automation_v1_invalid_payload:
+      "Aviso do SimplesVet incompleto (telefone, valor ou data)",
+    simplesvet_automation_v1_not_purchase: "Não é uma venda paga do SimplesVet",
+    simplesvet_automation_v1_event_not_in_rule:
+      "Evento do SimplesVet fora desta regra",
     // Unnichat (Fase 4b).
     ctwa_missing: "Sem clique do anúncio (ctwa_clid): nada é enviado à Meta",
     ctwa_ad_unavailable:

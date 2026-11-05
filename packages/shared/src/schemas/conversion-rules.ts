@@ -71,6 +71,7 @@ export const providerConversionAutomationSources = [
   "braip",
   "roichat",
   "yampi",
+  "simplesvet",
 ] as const;
 export const providerConversionAutomationSourceSchema = z.enum(
   providerConversionAutomationSources,
@@ -111,7 +112,12 @@ export const paytBetaSaleEventNames = ["CartAbandoned"] as const;
  * Braip e, na 6.7, Yampi, com o leitor `automation-v1` certificado (produção
  * direta).
  */
-export const salesPlatformProviders = ["payt", "braip", "yampi"] as const;
+export const salesPlatformProviders = [
+  "payt",
+  "braip",
+  "yampi",
+  "simplesvet",
+] as const;
 export type SalesPlatformProviderDto = (typeof salesPlatformProviders)[number];
 export function isSalesPlatformProvider(
   provider: string | null | undefined,
@@ -126,6 +132,7 @@ export const salesPlatformLabels: Record<SalesPlatformProviderDto, string> = {
   payt: "Payt",
   braip: "Braip",
   yampi: "Yampi",
+  simplesvet: "SimplesVet",
 };
 
 /** Mesmos eventos para toda plataforma de venda (Payt, Braip, Yampi). */
@@ -182,6 +189,7 @@ export const providerConversionRuleOrigins = [
   "automation_braip",
   "automation_roichat",
   "automation_yampi",
+  "automation_simplesvet",
 ] as const;
 export const providerConversionRuleOriginSchema = z.enum(
   providerConversionRuleOrigins,

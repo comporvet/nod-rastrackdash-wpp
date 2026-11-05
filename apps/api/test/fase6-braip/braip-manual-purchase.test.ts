@@ -43,6 +43,7 @@ describe("manual purchase vs a Braip sale", () => {
       "inbound_webhook:payt:",
       "inbound_webhook:braip:",
       "inbound_webhook:yampi:",
+      "inbound_webhook:simplesvet:",
     ]);
   });
 

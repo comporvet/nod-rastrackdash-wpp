@@ -116,6 +116,15 @@ export function yampiEventLabel(eventName: string): string {
   return yampiEventLabels[eventName] ?? ruleEventLabel(eventName);
 }
 
+export const simplesvetEventLabels: Readonly<Record<string, string>> = {
+  Purchase: "Venda paga",
+};
+
+export const simplesvetEventExplanations: Readonly<Record<string, string>> = {
+  Purchase:
+    "Venda enviada pelo workflow do n8n. O mesmo identificador nunca vira duas compras.",
+};
+
 /** Rótulos de venda de uma origem de plataforma de venda (Payt, Braip, Yampi). */
 export function saleEventLabelsForOrigin(
   origin: string,
@@ -123,6 +132,7 @@ export function saleEventLabelsForOrigin(
   if (origin === "automation_payt") return paytEventLabels;
   if (origin === "automation_braip") return braipEventLabels;
   if (origin === "automation_yampi") return yampiEventLabels;
+  if (origin === "automation_simplesvet") return simplesvetEventLabels;
   return null;
 }
 
@@ -137,7 +147,9 @@ export function ruleEventLabelForOrigin(
       ? braipEventLabel(eventName)
       : origin === "automation_yampi"
         ? yampiEventLabel(eventName)
-        : ruleEventLabel(eventName);
+        : origin === "automation_simplesvet"
+          ? (simplesvetEventLabels[eventName] ?? ruleEventLabel(eventName))
+          : ruleEventLabel(eventName);
 }
 
 /**

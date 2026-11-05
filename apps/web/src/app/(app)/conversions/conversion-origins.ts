@@ -195,6 +195,26 @@ export const ruleOriginDefinitions: readonly RuleOriginDefinition[] = [
     betaEvents: ["CartAbandoned"],
   },
   {
+    id: "automation_simplesvet",
+    kind: "provider",
+    label: "Venda no SimplesVet",
+    description:
+      "Quando o workflow do n8n avisa uma venda do SimplesVet de alguém que chegou pelo WhatsApp.",
+    logoProvider: "simplesvet",
+    fallbackChannelProviders: [
+      "umbler",
+      "gupshup",
+      "uazapi",
+      "meta_cloud",
+      "data_crazy",
+      "unnichat",
+      "waha",
+      "roichat",
+    ],
+    connection: "any",
+    allowedEvents: ["Purchase"],
+  },
+  {
     id: "kommo",
     kind: "crm",
     label: "Etapa no Kommo",

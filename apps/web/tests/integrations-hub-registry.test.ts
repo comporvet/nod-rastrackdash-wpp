@@ -87,6 +87,7 @@ describe("integration registry", () => {
         "roichat",
         // Fase 6.7: Yampi (same base as Braip, open to every workspace).
         "yampi",
+        "simplesvet",
         "kommo",
         "pipedrive",
         "meta",
@@ -173,6 +174,7 @@ describe("integration registry", () => {
       "payt",
       "braip",
       "yampi",
+      "simplesvet",
     ]);
     expect(inTab("ads")).toEqual(["meta"]);
     expect(inTab("crm")).toEqual(["kommo", "pipedrive"]);
@@ -338,6 +340,7 @@ describe("buildIntegrationCards", () => {
       "payt",
       "braip",
       "yampi",
+      "simplesvet",
     ]);
     expect(ids(cardsForTab(cards, "ads").active)).toEqual(["meta"]);
     expect(

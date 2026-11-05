@@ -260,6 +260,7 @@ export function providerRuleOrigin(
   if (rule.automationSource === "braip") return "automation_braip";
   if (rule.automationSource === "roichat") return "automation_roichat";
   if (rule.automationSource === "yampi") return "automation_yampi";
+  if (rule.automationSource === "simplesvet") return "automation_simplesvet";
 
   switch (rule.conversionRule.triggerType) {
     case "message_phrase":
@@ -433,6 +434,8 @@ function triggerDetailForProviderRule(
     case "automation_yampi":
       // Só pela URL única da Yampi (uma para a conta toda).
       return "URL única da Yampi";
+    case "automation_simplesvet":
+      return "URL única do SimplesVet";
   }
 }
 
@@ -1084,14 +1087,16 @@ export function ineligibleNumbers(
   const supported = new Set(
     origin === "automation_payt" ||
       origin === "automation_braip" ||
-      origin === "automation_yampi"
+      origin === "automation_yampi" ||
+      origin === "automation_simplesvet"
       ? originChannelProviders(origin, capabilities)
       : capabilities.origins
           .filter(
             (item) =>
               item.origin !== "automation_payt" &&
               item.origin !== "automation_braip" &&
-              item.origin !== "automation_yampi",
+              item.origin !== "automation_yampi" &&
+              item.origin !== "automation_simplesvet",
           )
           .flatMap((item) => item.channelProviders),
   );

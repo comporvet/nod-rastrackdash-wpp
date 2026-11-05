@@ -253,13 +253,18 @@ export const braipSingleConnectionNote =
 export const yampiSingleConnectionNote =
   "As vendas da Yampi ficam ligadas à conexão dos números escolhidos: escolha números de uma mesma conexão.";
 
+export const simplesvetSingleConnectionNote =
+  "As vendas do SimplesVet ficam ligadas à conexão dos números escolhidos: escolha números de uma mesma conexão.";
+
 /** Nota de "mesma conexão" da plataforma de venda da origem (Payt, Braip, Yampi). */
 export function salesSingleConnectionNote(origin: string): string {
   return origin === "automation_braip"
     ? braipSingleConnectionNote
     : origin === "automation_yampi"
       ? yampiSingleConnectionNote
-      : paytSingleConnectionNote;
+      : origin === "automation_simplesvet"
+        ? simplesvetSingleConnectionNote
+        : paytSingleConnectionNote;
 }
 
 /** Why the chosen reach cannot be sent, or null when it is fine. */
@@ -501,6 +506,7 @@ export function buildRulePayload(
     case "automation_payt":
     case "automation_braip":
     case "automation_yampi":
+    case "automation_simplesvet":
       // O valor de cada venda e o evento vêm do postback da plataforma: nada
       // de valor médio, frases ou etiquetas. A Braip (6.5) e a Yampi (6.7)
       // recebem só pela URL única: a URL própria da regra nasce sempre
@@ -516,13 +522,16 @@ export function buildRulePayload(
               ? "braip"
               : draft.origin === "automation_yampi"
                 ? "yampi"
-                : "payt",
+                : draft.origin === "automation_simplesvet"
+                  ? "simplesvet"
+                  : "payt",
           ...(draft.productCodes.length > 0
             ? { productFilterCodes: [...draft.productCodes] }
             : {}),
           ...(context.singleUrl ||
           draft.origin === "automation_braip" ||
-          draft.origin === "automation_yampi"
+          draft.origin === "automation_yampi" ||
+          draft.origin === "automation_simplesvet"
             ? { perRuleUrl: false }
             : {}),
           // Moeda da venda -> da regra -> do workspace.

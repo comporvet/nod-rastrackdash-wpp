@@ -142,6 +142,7 @@ export default async function ConversionsPage({
                 braipUnattributed: singleUrlData.unattributed.braip,
                 yampiProducts: singleUrlData.yampiProducts,
                 yampiUnattributed: singleUrlData.unattributed.yampi,
+                simplesvetUnattributed: singleUrlData.unattributed.simplesvet,
                 actions: {
                   ensure: ensureIntegrationEndpointAction,
                   reveal: revealIntegrationEndpointAction,

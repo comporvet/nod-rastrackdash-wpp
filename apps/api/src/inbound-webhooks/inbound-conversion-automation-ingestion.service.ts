@@ -111,6 +111,8 @@ const ignoredParseErrors = new Set<string>([
   ROICHAT_AUTOMATION_V1_NOT_PURCHASE,
   "yampi_automation_v1_not_purchase",
   "yampi_automation_v1_event_not_in_rule",
+  "simplesvet_automation_v1_not_purchase",
+  "simplesvet_automation_v1_event_not_in_rule",
 ]);
 const ignoredEmptyTemplateReason = "ignored_empty_template";
 const paytLeadOtherChannelMessage =
@@ -2138,6 +2140,8 @@ export class InboundConversionAutomationIngestionService {
         return "braip-automation-v1";
       case "yampi":
         return "yampi-automation-v1";
+      case "simplesvet":
+        return "simplesvet-automation-v1";
       case "unnichat":
         return "unnichat-automation-v1";
       case "roichat":

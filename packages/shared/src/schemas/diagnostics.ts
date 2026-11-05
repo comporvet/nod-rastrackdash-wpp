@@ -21,7 +21,8 @@ export const diagnosticSources = [
   "unnichat",
   "braip",
   "roichat",
-  "yampi"
+  "yampi",
+  "simplesvet"
 ] as const;
 export const diagnosticSeverities = [
   "info",

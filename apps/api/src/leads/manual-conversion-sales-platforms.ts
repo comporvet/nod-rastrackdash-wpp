@@ -1,6 +1,7 @@
 import { parseBraipSaleEventV1 } from "../inbound-webhooks/providers/braip/braip-automation-v1.parser";
 import { parsePaytSaleEventV1 } from "../inbound-webhooks/providers/payt/payt-automation-v1.parser";
 import { parseYampiSaleEventV1 } from "../inbound-webhooks/providers/yampi/yampi-automation-v1.parser";
+import { parseSimplesvetSaleEventV1 } from "../inbound-webhooks/providers/simplesvet/simplesvet-automation-v1.parser";
 
 /**
  * Plataformas de venda cuja Compra deduplica contra a compra manual com
@@ -48,6 +49,14 @@ export const MANUAL_PURCHASE_SALES_PLATFORMS: readonly ManualPurchaseSalesPlatfo
       parserVersion: "automation-v1",
       readOrderRef(payload) {
         const parsed = parseYampiSaleEventV1(payload);
+        return parsed.ok ? parsed.value.orderRef : null;
+      },
+    },
+    {
+      provider: "simplesvet",
+      parserVersion: "automation-v1",
+      readOrderRef(payload) {
+        const parsed = parseSimplesvetSaleEventV1(payload);
         return parsed.ok ? parsed.value.orderRef : null;
       },
     },

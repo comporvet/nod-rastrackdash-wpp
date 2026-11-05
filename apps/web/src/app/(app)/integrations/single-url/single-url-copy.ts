@@ -16,6 +16,8 @@ import {
   braipEventLabels,
   paytEventExplanations,
   paytEventLabels,
+  simplesvetEventExplanations,
+  simplesvetEventLabels,
   yampiEventExplanations,
   yampiEventLabels,
   ruleEventLabel,
@@ -34,6 +36,7 @@ export const singleUrlPlatformNames: Record<
   payt: "Payt",
   braip: "Braip",
   yampi: "Yampi",
+  simplesvet: "SimplesVet",
   unnichat: "Unnichat",
   umbler: "Umbler Talk",
 };
@@ -46,6 +49,7 @@ export const singleUrlPlatformLocatives: Record<
   payt: "na Payt",
   braip: "na Braip",
   yampi: "na Yampi",
+  simplesvet: "no SimplesVet",
   unnichat: "no Unnichat",
   umbler: "na Umbler Talk",
 };
@@ -58,6 +62,7 @@ export const singleUrlPlatformSubjects: Record<
   payt: "a Payt",
   braip: "a Braip",
   yampi: "a Yampi",
+  simplesvet: "o SimplesVet",
   unnichat: "o Unnichat",
   umbler: "a Umbler Talk",
 };
@@ -105,6 +110,9 @@ export function eventLabel(
   if (provider === "yampi" && yampiEventLabels[eventName]) {
     return yampiEventLabels[eventName];
   }
+  if (provider === "simplesvet" && simplesvetEventLabels[eventName]) {
+    return simplesvetEventLabels[eventName];
+  }
   return ruleEventLabel(eventName);
 }
 
@@ -120,7 +128,9 @@ export function saleEventExplanation(
       ? braipEventExplanations
       : provider === "yampi"
         ? yampiEventExplanations
-        : paytEventExplanations;
+        : provider === "simplesvet"
+          ? simplesvetEventExplanations
+          : paytEventExplanations;
   return explanations[eventName] ?? "";
 }
 
@@ -152,7 +162,9 @@ export function productCodeGuidance(
     ? braipProductCodeGuidance
     : provider === "yampi"
       ? yampiProductCodeGuidance
-      : paytProductCodeGuidance;
+      : provider === "simplesvet"
+        ? ""
+        : paytProductCodeGuidance;
 }
 
 export function unseenProductCodeWarningFor(
@@ -162,7 +174,9 @@ export function unseenProductCodeWarningFor(
     ? "Código ainda não visto em nenhuma venda. Confira se está igual ao da Braip."
     : provider === "yampi"
       ? "Código ainda não visto em nenhuma venda. Confira se está igual ao da Yampi."
-      : unseenProductCodeWarning;
+      : provider === "simplesvet"
+        ? ""
+        : unseenProductCodeWarning;
 }
 
 /** Passo a passo para colar a URL na plataforma. */
@@ -184,6 +198,13 @@ export function singleUrlSetupSteps(
         "Em eventos, marque Pedido pago (order.paid), Pedido criado (order.created), Mudança de status (order.status.updated) e Carrinho abandonado (cart.reminder). Não é preciso copiar a chave secreta (secret_key): a URL já tem a chave.",
         "Cada venda vai para a regra do número por onde o comprador chegou. Sem regra, ela aparece em “Vendas sem atribuição”.",
         "O mesmo pedido nunca vira duas compras. Cancelamento, reembolso e pagamento recusado são recebidos e ignorados.",
+      ];
+    case "simplesvet":
+      return [
+        "Salve esta URL única em uma credencial do n8n, nunca no JSON do workflow.",
+        "O workflow envia cada venda nesta URL com POST e JSON: event sale.paid e sale com id, paidAt, value e phones.",
+        "Cada venda vai para a regra do número por onde o comprador chegou. Sem regra, ela aparece em “Vendas sem atribuição”.",
+        "O mesmo identificador de venda nunca vira duas compras: reenviar é seguro.",
       ];
     case "payt":
       return [

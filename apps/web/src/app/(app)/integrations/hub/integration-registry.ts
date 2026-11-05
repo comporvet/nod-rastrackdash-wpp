@@ -116,6 +116,7 @@ export const integrationProviderIds = [
   "payt",
   "braip",
   "yampi",
+  "simplesvet",
   "kommo",
   "pipedrive",
   "meta",
@@ -165,6 +166,7 @@ export type IntegrationGate =
    * to every workspace in the student edition: no private-integration gate.
    */
   | { kind: "yampi_rules" }
+  | { kind: "simplesvet_rules" }
   | { kind: "always" };
 
 export type IntegrationProviderDefinition = {
@@ -211,6 +213,7 @@ const logoAssets: Record<IntegrationProviderId, LogoAsset> = {
   // Neutral wordmark placeholder (same file as the SaaS). PENDENTE: official
   // Yampi artwork with usage permission (see public/integrations/SOURCES.md).
   yampi: { file: "yampi.svg", surface: "dark" },
+  simplesvet: { file: "simplesvet.svg", surface: "dark" },
   kommo: { file: "kommo.png", surface: "light" },
   pipedrive: { file: "pipedrive.svg", surface: "dark" },
   meta: { file: "meta.svg", surface: "dark" },
@@ -378,6 +381,17 @@ export const integrationProviders: readonly IntegrationProviderDefinition[] = [
     description:
       "Envie pedido pago, pedido aguardando pagamento (boleto/Pix) e carrinho abandonado da Yampi como conversão do lead que veio do anúncio, com os itens do pedido. Uma URL única para a conta toda.",
     gate: { kind: "yampi_rules" },
+  },
+  {
+    id: "simplesvet",
+    name: "SimplesVet",
+    category: "attendance",
+    logo: integrationLogoPath("simplesvet"),
+    initials: "SV",
+    logoSurface: logoSurface("simplesvet"),
+    description:
+      "Receba as vendas do SimplesVet pelo workflow do n8n como conversão do lead que veio do anúncio. Uma URL única para a conta toda.",
+    gate: { kind: "simplesvet_rules" },
   },
   {
     id: "meta",

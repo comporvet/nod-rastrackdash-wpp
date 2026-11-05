@@ -154,6 +154,7 @@ const PROVIDER_NAMES: Record<string, string> = {
   payt: "Payt",
   braip: "Braip",
   yampi: "Yampi",
+  simplesvet: "SimplesVet",
   umbler: "Umbler",
   unnichat: "Unnichat",
   roichat: "ROI Chat",
@@ -177,7 +178,12 @@ export function manualConversionOriginLabel(sourceTrigger: string): string {
     const [, provider = "", trigger] = sourceTrigger.split(":");
     const name = PROVIDER_NAMES[provider] ?? provider;
     if (!trigger) return "entrada do anúncio";
-    if (provider === "payt" || provider === "braip" || provider === "yampi")
+    if (
+      provider === "payt" ||
+      provider === "braip" ||
+      provider === "yampi" ||
+      provider === "simplesvet"
+    )
       return name;
     if (trigger === "message_phrase") return "regra de frase";
     if (trigger === "structured_catalog") return "regra de catálogo";

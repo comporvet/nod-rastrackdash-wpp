@@ -43,6 +43,7 @@ export type IntegrationRoutingProvider =
   | "payt"
   | "braip"
   | "yampi"
+  | "simplesvet"
   | "unnichat"
   | "umbler"
   // Fase 6.8: the ROI Chat purchase arrives on the number's own URL and is

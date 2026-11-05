@@ -16,6 +16,7 @@ export const parserProviderLabels: Record<
   braip: "Braip",
   roichat: "ROI Chat",
   yampi: "Yampi",
+  simplesvet: "SimplesVet",
 };
 
 /** Texto do estado de um leitor (sem jargão de certificação). */

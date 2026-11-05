@@ -313,11 +313,15 @@ type GlobalNumberActivation = {
  * Fase 6.5/6.7: a Braip or Yampi rule has no per-rule URL to reopen or rotate
  * (the platform receives only through the workspace single URL).
  */
-type SingleUrlOnlyPlatform = "braip" | "yampi";
+type SingleUrlOnlyPlatform = "braip" | "yampi" | "simplesvet";
 function isSingleUrlOnlyPlatform(
   platform: string | null,
 ): platform is SingleUrlOnlyPlatform {
-  return platform === "braip" || platform === "yampi";
+  return (
+    platform === "braip" ||
+    platform === "yampi" ||
+    platform === "simplesvet"
+  );
 }
 function singleUrlOnlyMessage(platform: SingleUrlOnlyPlatform): string {
   const name = salesPlatformLabels[platform];
@@ -1733,7 +1737,9 @@ export class ProviderConversionRulesService {
           const provider = current.parserRelease?.provider;
           const workspaceUrl =
             provider &&
-            ["payt", "braip", "yampi", "unnichat", "umbler"].includes(provider)
+            ["payt", "braip", "yampi", "simplesvet", "unnichat", "umbler"].includes(
+              provider,
+            )
               ? await transaction.integrationEndpoint.findFirst({
                   where: {
                     workspaceId,
@@ -2849,6 +2855,7 @@ export class ProviderConversionRulesService {
     if (input.triggerType === "structured_catalog") return "structured_catalog";
     if (salesPlatform === "braip") return "automation_braip";
     if (salesPlatform === "yampi") return "automation_yampi";
+    if (salesPlatform === "simplesvet") return "automation_simplesvet";
     if (salesPlatform === "payt") return "automation_payt";
     // Without a connection, a provider automation can only be a WhatsApp
     // label rule (the Umbler automation always names its connection).
@@ -2919,6 +2926,7 @@ export class ProviderConversionRulesService {
           rule.origin === "automation_payt" ||
           rule.origin === "automation_braip" ||
           rule.origin === "automation_yampi" ||
+          rule.origin === "automation_simplesvet" ||
           rule.origin === "automation_unnichat"
             ? "provider_automation"
             : rule.origin,
@@ -2933,6 +2941,8 @@ export class ProviderConversionRulesService {
               ? { provider: "braip" }
             : rule.origin === "automation_yampi"
               ? { provider: "yampi" }
+            : rule.origin === "automation_simplesvet"
+              ? { provider: "simplesvet" }
             : rule.origin === "automation_unnichat"
               ? { provider: "unnichat" }
               : null,

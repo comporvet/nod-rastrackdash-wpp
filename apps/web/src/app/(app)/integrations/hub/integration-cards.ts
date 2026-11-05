@@ -97,6 +97,12 @@ export type IntegrationHubSnapshot = {
     activeRuleCount: number;
     integrationUrl?: boolean;
   };
+  simplesvet?: {
+    loaded: boolean;
+    ruleCount: number;
+    activeRuleCount: number;
+    integrationUrl?: boolean;
+  };
   crm: {
     kommo: CrmSnapshot;
     pipedrive: CrmSnapshot;
@@ -254,6 +260,12 @@ function yampiDecision(snapshot: IntegrationHubSnapshot): CardDecision {
   );
 }
 
+function simplesvetDecision(snapshot: IntegrationHubSnapshot): CardDecision {
+  return salesPlatformDecision(
+    snapshot.simplesvet ?? { loaded: true, ruleCount: 0, activeRuleCount: 0 },
+  );
+}
+
 function salesPlatformDecision(platform: {
   loaded: boolean;
   ruleCount: number;
@@ -381,6 +393,8 @@ function decide(
       return braipDecision(snapshot);
     case "yampi_rules":
       return yampiDecision(snapshot);
+    case "simplesvet_rules":
+      return simplesvetDecision(snapshot);
     case "always":
       return definition.id === "meta" ? metaDecision(snapshot) : available;
   }

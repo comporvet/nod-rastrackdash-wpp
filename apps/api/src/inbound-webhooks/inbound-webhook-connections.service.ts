@@ -147,6 +147,7 @@ export class InboundWebhookConnectionsService {
             provider !== "payt" &&
             provider !== "braip" &&
             provider !== "yampi" &&
+            provider !== "simplesvet" &&
             provider !== "waha",
         )
         .map((provider) => {

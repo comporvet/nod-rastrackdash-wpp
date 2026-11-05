@@ -28,6 +28,7 @@ import {
   paytBetaBadge,
   braipEventExplanations,
   paytEventExplanations,
+  simplesvetEventExplanations,
   yampiEventExplanations,
   paytEventLabel,
   ruleEventLabelForOrigin,
@@ -147,6 +148,8 @@ export function singleUrlProviderFor(
       return "braip";
     case "automation_yampi":
       return "yampi";
+    case "automation_simplesvet":
+      return "simplesvet";
     case "automation_unnichat":
       return "unnichat";
     case "automation_umbler":
@@ -716,19 +719,30 @@ function PaytEventStep({
   // Fase 6.5/6.7: a Braip e a Yampi usam o mesmo passo, com os seus rótulos.
   const braip = draft.origin === "automation_braip";
   const yampi = draft.origin === "automation_yampi";
-  const platform = braip ? "Braip" : yampi ? "Yampi" : "Payt";
+  const simplesvet = draft.origin === "automation_simplesvet";
+  const platform = braip
+    ? "Braip"
+    : yampi
+      ? "Yampi"
+      : simplesvet
+        ? "SimplesVet"
+        : "Payt";
   const explanations = braip
     ? braipEventExplanations
     : yampi
       ? yampiEventExplanations
-      : paytEventExplanations;
+      : simplesvet
+        ? simplesvetEventExplanations
+        : paytEventExplanations;
 
   return (
     <fieldset className="conversion-flow-fieldset">
-      <legend>Qual venda da {platform} vai para a Meta?</legend>
+      <legend>
+        Qual venda {simplesvet ? "do" : "da"} {platform} vai para a Meta?
+      </legend>
       <p className="muted">
-        O evento vem do status de cada venda e o valor vem da própria venda da{" "}
-        {platform}. Crie uma regra para cada evento que quiser enviar.
+        O evento vem do status de cada venda e o valor vem da própria venda{" "}
+        {simplesvet ? "do" : "da"} {platform}. Crie uma regra para cada evento que quiser enviar.
         {braip
           ? " Reembolso, chargeback e cancelamento são recebidos e ignorados."
           : yampi
@@ -782,7 +796,8 @@ function EventStep({
   if (
     draft.origin === "automation_payt" ||
     draft.origin === "automation_braip" ||
-    draft.origin === "automation_yampi"
+    draft.origin === "automation_yampi" ||
+    draft.origin === "automation_simplesvet"
   ) {
     return (
       <PaytEventStep
@@ -1038,7 +1053,8 @@ export function ScopeStep({
                   : automation ||
                       draft.origin === "automation_payt" ||
                       draft.origin === "automation_braip" ||
-                      draft.origin === "automation_yampi"
+                      draft.origin === "automation_yampi" ||
+                      draft.origin === "automation_simplesvet"
                     ? "Escolha um ou mais números de uma mesma conexão."
                     : "Escolha um ou mais números, de qualquer conexão."}
             </small>
@@ -1048,7 +1064,8 @@ export function ScopeStep({
 
       {draft.origin === "automation_payt" ||
       draft.origin === "automation_braip" ||
-      draft.origin === "automation_yampi" ? (
+      draft.origin === "automation_yampi" ||
+      draft.origin === "automation_simplesvet" ? (
         <p className="action-note conversion-scope-note">
           {salesSingleConnectionNote(draft.origin)}
         </p>
@@ -1544,6 +1561,13 @@ function DetailsStep({
         </>
       ) : null}
 
+      {draft.origin === "automation_simplesvet" ? (
+        <p className="action-note">
+          O valor de cada venda vem do workflow do n8n, em reais. As vendas
+          chegam pela URL única do SimplesVet (uma para a conta toda).
+        </p>
+      ) : null}
+
       {conversionEventCarriesValue(definition.lockedEvent ?? draft.eventName) ? (
         <RuleCurrencySelect
           value={draft.currency}
@@ -1622,13 +1646,21 @@ function SingleUrlAfterCreate({
   const endpoint = created ?? existing;
   const sales = isSalesPlatform(provider);
   const platform =
-    provider === "braip" ? "Braip" : provider === "yampi" ? "Yampi" : "Payt";
+    provider === "braip"
+      ? "Braip"
+      : provider === "yampi"
+        ? "Yampi"
+        : provider === "simplesvet"
+          ? "SimplesVet"
+          : "Payt";
   const label = sales
     ? provider === "braip"
       ? "URL única da Braip (cole em Ferramentas → Postback)"
       : provider === "yampi"
         ? "URL única da Yampi (cadastre no webhook da loja)"
-        : "URL única da Payt (cole em Postback)"
+        : provider === "simplesvet"
+          ? "URL única do SimplesVet (cole no workflow do n8n)"
+          : "URL única da Payt (cole em Postback)"
     : `URL do evento “${ruleEventLabelForOrigin(`automation_${provider}`, eventName)}”`;
 
   return (
@@ -1708,7 +1740,8 @@ export function ruleCurrencyHint(origin: string): string {
   if (
     origin === "automation_payt" ||
     origin === "automation_braip" ||
-    origin === "automation_yampi"
+    origin === "automation_yampi" ||
+    origin === "automation_simplesvet"
   ) {
     return "A moeda da venda vence; esta só vale quando a venda não informa a moeda.";
   }

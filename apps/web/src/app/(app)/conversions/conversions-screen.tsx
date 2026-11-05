@@ -126,6 +126,7 @@ export type ConversionsSingleUrl = {
   /** Fase 6.7: produtos e vendas sem atribuição da Yampi. */
   yampiProducts?: IntegrationDetectedProductDto[];
   yampiUnattributed?: IntegrationUnattributedEventListDto | null;
+  simplesvetUnattributed?: IntegrationUnattributedEventListDto | null;
   actions: SingleUrlActions;
 };
 
@@ -658,7 +659,9 @@ export function ConversionsScreen({
             {(singleUrl.braipUnattributed &&
               singleUrl.braipUnattributed.total > 0) ||
             (singleUrl.yampiUnattributed &&
-              singleUrl.yampiUnattributed.total > 0)
+              singleUrl.yampiUnattributed.total > 0) ||
+            (singleUrl.simplesvetUnattributed &&
+              singleUrl.simplesvetUnattributed.total > 0)
               ? "Vendas sem atribuição (Payt)"
               : "Vendas sem atribuição"}
           </h2>
@@ -704,6 +707,26 @@ export function ConversionsScreen({
           </h2>
           <UnattributedSalesList
             list={singleUrl.yampiUnattributed}
+            canManage={canManage}
+            licenseLocked={licenseLocked}
+            retry={singleUrl.actions.retry}
+            loadPayload={singleUrl.actions.loadPayload}
+          />
+        </section>
+      ) : null}
+
+      {singleUrl &&
+      singleUrl.simplesvetUnattributed &&
+      singleUrl.simplesvetUnattributed.total > 0 ? (
+        <section
+          className="conversions-list-section conversions-unattributed"
+          aria-labelledby="conversions-unattributed-simplesvet-title"
+        >
+          <h2 id="conversions-unattributed-simplesvet-title">
+            Vendas sem atribuição (SimplesVet)
+          </h2>
+          <UnattributedSalesList
+            list={singleUrl.simplesvetUnattributed}
             canManage={canManage}
             licenseLocked={licenseLocked}
             retry={singleUrl.actions.retry}

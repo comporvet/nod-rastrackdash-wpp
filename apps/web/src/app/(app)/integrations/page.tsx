@@ -1238,6 +1238,9 @@ export default async function IntegrationsPage({
   const yampiRules = (inboundWebhookData?.providerRules ?? []).filter(
     (rule) => rule.automationSource === "yampi",
   );
+  const simplesvetRules = (inboundWebhookData?.providerRules ?? []).filter(
+    (rule) => rule.automationSource === "simplesvet",
+  );
 
   // Fase 5.3: URL única (Payt) e URLs por evento (Unnichat e Umbler).
   const singleUrlEnabled = Boolean(singleUrlData.endpoints?.enabled);
@@ -1264,6 +1267,9 @@ export default async function IntegrationsPage({
   const yampiIntegrationUrl =
     singleUrlEndpoints.find((endpoint) => endpoint.provider === "yampi") ??
     null;
+  const simplesvetIntegrationUrl =
+    singleUrlEndpoints.find((endpoint) => endpoint.provider === "simplesvet") ??
+    null;
   const ruleEventsFor = (origin: string) => [
     ...new Set(
       (inboundWebhookData?.providerRules ?? [])
@@ -1275,7 +1281,9 @@ export default async function IntegrationsPage({
               (origin === "automation_braip" &&
                 rule.automationSource === "braip") ||
               (origin === "automation_yampi" &&
-                rule.automationSource === "yampi")) &&
+                rule.automationSource === "yampi") ||
+              (origin === "automation_simplesvet" &&
+                rule.automationSource === "simplesvet")) &&
             rule.conversionRule.active,
         )
         .map((rule) => rule.conversionRule.eventName),
@@ -1334,6 +1342,15 @@ export default async function IntegrationsPage({
       activeRuleCount: yampiRules.filter((rule) => rule.conversionRule.active)
         .length,
       integrationUrl: Boolean(yampiIntegrationUrl),
+    },
+    simplesvet: {
+      loaded:
+        Boolean(inboundWebhookData) && inboundWebhookData!.providerRulesEnabled,
+      ruleCount: simplesvetRules.length,
+      activeRuleCount: simplesvetRules.filter(
+        (rule) => rule.conversionRule.active,
+      ).length,
+      integrationUrl: Boolean(simplesvetIntegrationUrl),
     },
     crm: {
       kommo: {
@@ -1700,6 +1717,67 @@ export default async function IntegrationsPage({
           instalação; peça a quem administra a instalação para conferir.
         </p>
         {yampiRulesLink}
+      </div>
+    </div>
+  );
+
+  const simplesvetRulesLink = hasWhatsappNumber ? (
+    <Link
+      className="button primary"
+      href={
+        simplesvetRules.length > 0
+          ? "/conversions"
+          : "/conversions?nova=automation_simplesvet"
+      }
+    >
+      {simplesvetRules.length > 0
+        ? "Gerenciar regras do SimplesVet"
+        : "Criar regra de venda do SimplesVet"}
+    </Link>
+  ) : (
+    <>
+      <p className="muted">
+        Antes, conecte um número de WhatsApp para saber de qual anúncio veio
+        cada comprador.
+      </p>
+      <a className="button" href="#integracao-whatsapp">
+        Ir para WhatsApp
+      </a>
+    </>
+  );
+  const simplesvetPanel = singleUrlEnabled ? (
+    <div className="integration-modal-stack">
+      <SalesPlatformSingleUrlPanel
+        provider="simplesvet"
+        endpoint={simplesvetIntegrationUrl}
+        products={[]}
+        unattributed={singleUrlData.unattributed.simplesvet}
+        legacyUrls={legacyUrlsFor(singleUrlLegacy, "simplesvet")}
+        ruleEvents={ruleEventsFor("automation_simplesvet")}
+        canManage={canManageSingleUrl}
+        licenseLocked={licenseLocked}
+        actions={singleUrlActions}
+        numberNames={singleUrlNumberNames}
+      />
+      <div className="integration-modal-note">
+        <strong>Regra de venda</strong>
+        <p className="muted">
+          Crie uma regra de venda paga para todos os números. A regra já começa
+          enviando: a venda segue para o número por onde o comprador chegou.
+        </p>
+        {simplesvetRulesLink}
+      </div>
+    </div>
+  ) : (
+    <div className="integration-modal-stack">
+      <div className="integration-modal-note">
+        <strong>Como funciona</strong>
+        <p className="muted">
+          O workflow do n8n avisa cada venda numa URL única da conta. Essa URL
+          só existe com os webhooks de entrada e as regras de conversão ligados
+          nesta instalação; peça a quem administra a instalação para conferir.
+        </p>
+        {simplesvetRulesLink}
       </div>
     </div>
   );
@@ -2088,6 +2166,7 @@ export default async function IntegrationsPage({
     payt: paytPanel,
     braip: braipPanel,
     yampi: yampiPanel,
+    simplesvet: simplesvetPanel,
     meta: metaPanel,
     kommo:
       workspace && kommoViewerId && canManageKommo ? (
@@ -2295,6 +2374,7 @@ export default async function IntegrationsPage({
           payt: [rulesLink],
           braip: [rulesLink],
           yampi: [rulesLink],
+          simplesvet: [rulesLink],
         }}
         tabIntro={{
           whatsapp: whatsappIntro,

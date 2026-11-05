@@ -118,6 +118,7 @@ const routedProviders = [
   "payt",
   "braip",
   "yampi",
+  "simplesvet",
   "unnichat",
   "umbler",
 ] as const;
@@ -1043,6 +1044,7 @@ export class IntegrationEndpointsService {
       case "payt":
       case "braip":
       case "yampi":
+      case "simplesvet":
         return routeSalePlatformSale(this.prisma, this.paidLeads, {
           workspaceId: endpoint.workspaceId,
           sale: parsed.sale,
@@ -1075,7 +1077,8 @@ export class IntegrationEndpointsService {
     switch (endpoint.provider) {
       case "payt":
       case "braip":
-      case "yampi": {
+      case "yampi":
+      case "simplesvet": {
         const platform = endpoint.provider;
         const sale = parseSaleEventV1(platform, payload, { receivedAt });
         if (!sale.ok) {

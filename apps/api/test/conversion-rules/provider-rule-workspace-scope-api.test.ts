@@ -1748,6 +1748,16 @@ describe("provider rules API: Conversões screen support", () => {
         "waha",
         "roichat",
       ],
+      automation_simplesvet: [
+        "umbler",
+        "gupshup",
+        "uazapi",
+        "meta_cloud",
+        "data_crazy",
+        "unnichat",
+        "waha",
+        "roichat",
+      ],
     });
     expect(
       capabilities.origins.find((origin) => origin.origin === "message_phrase")
@@ -1781,6 +1791,7 @@ describe("provider rules API: Conversões screen support", () => {
       automation_roichat: [true, true],
       automation_braip: [false, true],
       automation_yampi: [false, true],
+      automation_simplesvet: [false, true],
     });
     // Unnichat: any catalog event (the rule chooses it), never unified.
     expect(

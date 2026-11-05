@@ -22,7 +22,8 @@ type DiagnosticSource =
   | "unnichat"
   | "braip"
   | "roichat"
-  | "yampi";
+  | "yampi"
+  | "simplesvet";
 
 function diagnosticSourceForProvider(
   provider: InboundWebhookProviderDto,

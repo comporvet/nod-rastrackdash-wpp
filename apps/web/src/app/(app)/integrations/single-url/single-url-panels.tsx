@@ -44,6 +44,7 @@ import {
   statsSummary,
   supportedEvents,
   unseenProductCodeWarningFor,
+  singleUrlPlatformSubjects,
 } from "./single-url-copy";
 import type { SalesPlatformProviderDto } from "@wpptrack/shared";
 
@@ -444,6 +445,7 @@ const unattributedTitles: Record<IntegrationEndpointProviderDto, string> = {
   payt: "Vendas sem atribuição",
   braip: "Vendas sem atribuição",
   yampi: "Vendas sem atribuição",
+  simplesvet: "Vendas sem atribuição",
   unnichat: "Eventos sem atribuição",
   umbler: "Eventos sem atribuição",
 };
@@ -822,7 +824,9 @@ export function SalesPlatformSingleUrlPanel({
   const braip = provider === "braip";
   const yampi = provider === "yampi";
   /** Braip e Yampi nascem só com a URL única (sem URL antiga por regra). */
-  const singleUrlOnly = braip || yampi;
+  const simplesvet = provider === "simplesvet";
+  const singleUrlOnly = braip || yampi || simplesvet;
+  const platformOf = simplesvet ? "do" : "da";
 
   return (
     <div className="integration-modal-stack single-url-panel">
@@ -830,10 +834,12 @@ export function SalesPlatformSingleUrlPanel({
         className="integration-modal-note"
         aria-labelledby={`${provider}-url-title`}
       >
-        <strong id={`${provider}-url-title`}>URL única da {platform}</strong>
+        <strong id={`${provider}-url-title`}>
+          URL única {platformOf} {platform}
+        </strong>
         <p className="muted">
-          Uma URL só para a conta toda: a {platform} avisa cada venda e o
-          sistema descobre por qual número o comprador chegou. Não precisa de
+          Uma URL só para a conta toda: {singleUrlPlatformSubjects[provider]}{" "}
+          avisa cada venda e o sistema descobre por qual número o comprador chegou. Não precisa de
           uma URL por número nem por regra.
         </p>
         {current ? (
@@ -845,7 +851,9 @@ export function SalesPlatformSingleUrlPanel({
                 ? "URL única (cole na Braip, em Ferramentas → Postback)"
                 : yampi
                   ? "URL única (cadastre no webhook da loja na Yampi)"
-                  : "URL única (cole na Payt, em Postback)"
+                  : simplesvet
+                    ? "URL única (use no workflow do n8n)"
+                    : "URL única (cole na Payt, em Postback)"
             }
             canManage={canManage}
             licenseLocked={licenseLocked}
@@ -908,13 +916,15 @@ export function SalesPlatformSingleUrlPanel({
         </p>
       </section>
 
-      <section
-        className="integration-modal-note"
-        aria-labelledby={`${provider}-products-title`}
-      >
-        <strong id={`${provider}-products-title`}>Produtos detectados</strong>
-        <DetectedProducts products={products} />
-      </section>
+      {simplesvet ? null : (
+        <section
+          className="integration-modal-note"
+          aria-labelledby={`${provider}-products-title`}
+        >
+          <strong id={`${provider}-products-title`}>Produtos detectados</strong>
+          <DetectedProducts products={products} />
+        </section>
+      )}
 
       <section
         className="integration-modal-note"

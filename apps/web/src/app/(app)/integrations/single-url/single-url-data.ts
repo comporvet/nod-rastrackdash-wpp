@@ -73,6 +73,7 @@ export async function loadSingleUrlData(): Promise<SingleUrlData> {
     payt,
     braip,
     yampi,
+    simplesvet,
     unnichat,
     umbler,
   ] = await Promise.all([
@@ -83,6 +84,7 @@ export async function loadSingleUrlData(): Promise<SingleUrlData> {
     loadUnattributed("payt"),
     loadUnattributed("braip"),
     loadUnattributed("yampi"),
+    loadUnattributed("simplesvet"),
     loadUnattributed("unnichat"),
     loadUnattributed("umbler"),
   ]);
@@ -92,6 +94,6 @@ export async function loadSingleUrlData(): Promise<SingleUrlData> {
     paytProducts,
     braipProducts,
     yampiProducts,
-    unattributed: { payt, braip, yampi, unnichat, umbler },
+    unattributed: { payt, braip, yampi, simplesvet, unnichat, umbler },
   };
 }

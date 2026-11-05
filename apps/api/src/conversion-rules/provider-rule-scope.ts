@@ -166,6 +166,7 @@ export function providerRuleOrigin(
       if (provider === "payt") return "automation_payt";
       if (provider === "braip") return "automation_braip";
       if (provider === "yampi") return "automation_yampi";
+      if (provider === "simplesvet") return "automation_simplesvet";
       if (provider === "umbler") return "automation_umbler";
       if (provider === "unnichat") return "automation_unnichat";
       if (provider === "roichat") return "automation_roichat";
@@ -196,6 +197,7 @@ export function providerRuleOriginChannelProviders(
     case "automation_payt":
     case "automation_braip":
     case "automation_yampi":
+    case "automation_simplesvet":
       return WHATSAPP_CHANNEL_PROVIDERS;
   }
 }
@@ -302,7 +304,8 @@ export function providerRuleIsSalesPlatform(
   return (
     origin === "automation_payt" ||
     origin === "automation_braip" ||
-    origin === "automation_yampi"
+    origin === "automation_yampi" ||
+    origin === "automation_simplesvet"
   );
 }
 
@@ -350,7 +353,8 @@ export function providerRuleOriginRequiresConnection(
     origin === "automation_roichat" ||
     origin === "automation_payt" ||
     origin === "automation_braip" ||
-    origin === "automation_yampi"
+    origin === "automation_yampi" ||
+    origin === "automation_simplesvet"
   );
 }
 
@@ -462,6 +466,20 @@ export function providerRuleCapabilities(): ProviderConversionRuleCapabilitiesDt
       unifiable: false,
       eventNames: PAYT_RULE_EVENT_NAMES,
       betaEventNames: PAYT_RULE_BETA_EVENT_NAMES,
+    },
+    {
+      origin: "automation_simplesvet",
+      scopes: ["all_numbers", "specific_numbers"],
+      channelProviders: [...WHATSAPP_CHANNEL_PROVIDERS],
+      authorChannelProviders: null,
+      connectionBound: false,
+      requiresConnection: providerRuleOriginRequiresConnection(
+        "automation_simplesvet",
+      ),
+      labelMatch: null,
+      unifiable: false,
+      eventNames: ["Purchase"],
+      betaEventNames: [],
     },
     {
       // Fase 4b (as in the SaaS): an Unnichat flow calls the rule URL. The

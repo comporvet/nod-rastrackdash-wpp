@@ -13,6 +13,12 @@ import {
   type YampiCapiCustomData,
 } from "./yampi/yampi-automation-v1.parser";
 import {
+  parseSimplesvetAutomationV1,
+  parseSimplesvetSaleEventV1,
+  simplesvetSaleEventNameOf,
+  type ParsedSimplesvetAutomationV1,
+} from "./simplesvet/simplesvet-automation-v1.parser";
+import {
   parsePaytAutomationV1,
   parsePaytSaleEventV1,
   paytProductFilterMatches,
@@ -35,14 +41,20 @@ import {
  * workspaces; só ela leva os itens reais do pedido à Meta (saleCapiCustomData).
  * Hotmart (6.6) entra aqui quando for portada.
  */
-export const SALES_PLATFORM_PROVIDERS = ["payt", "braip", "yampi"] as const;
+export const SALES_PLATFORM_PROVIDERS = [
+  "payt",
+  "braip",
+  "yampi",
+  "simplesvet",
+] as const;
 export type SalesPlatformProvider = (typeof SALES_PLATFORM_PROVIDERS)[number];
 export const SALES_PLATFORM_PARSER_VERSION = "automation-v1";
 
 export type ParsedSaleAutomationV1 =
   | ParsedPaytAutomationV1
   | ParsedBraipAutomationV1
-  | ParsedYampiAutomationV1;
+  | ParsedYampiAutomationV1
+  | ParsedSimplesvetAutomationV1;
 
 export function isSalesPlatformProvider(
   provider: string | null | undefined,
@@ -82,6 +94,8 @@ export function saleEventNameOf(
       return braipSaleEventNameOf(payload);
     case "yampi":
       return yampiSaleEventNameOf(payload);
+    case "simplesvet":
+      return simplesvetSaleEventNameOf(payload);
     default:
       return paytSaleEventNameOf(payload);
   }
@@ -116,7 +130,9 @@ export function parseSaleEventV1(
       ? parseBraipSaleEventV1(payload, options)
       : provider === "yampi"
         ? parseYampiSaleEventV1(payload, options)
-        : parsePaytSaleEventV1(payload, options);
+        : provider === "simplesvet"
+          ? parseSimplesvetSaleEventV1(payload, options)
+          : parsePaytSaleEventV1(payload, options);
   if (parsed.ok) return parsed;
   return {
     ok: false,
@@ -141,6 +157,8 @@ export function parseSalePurchaseV1(
       return parseBraipAutomationV1(payload, options);
     case "yampi":
       return parseYampiAutomationV1(payload, options);
+    case "simplesvet":
+      return parseSimplesvetAutomationV1(payload, options);
     default:
       return parsePaytAutomationV1(payload, options);
   }

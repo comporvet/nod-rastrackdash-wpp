@@ -39,6 +39,7 @@ export function inboundParserProductionEligible(
         "braip",
         // Fase 6.7: Yampi sale parser (certified by migration: production direct).
         "yampi",
+        "simplesvet",
         // Fase 4b: Unnichat entry and automation parsers (certified by migration).
         "unnichat",
         // Fase 6.8: ROI Chat entry and purchase parsers (certified by

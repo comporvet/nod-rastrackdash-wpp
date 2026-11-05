@@ -177,6 +177,7 @@ describe("integrations route", () => {
         "umbler",
         "uazapi_byo",
         "waha",
+        "simplesvet",
         "yampi",
         "zapi",
       ].sort(),

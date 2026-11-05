@@ -39,11 +39,13 @@ const platformNames: Partial<Record<ProviderConversionRuleOriginDto, string>> = 
   automation_braip: "Braip",
   automation_roichat: "ROI Chat",
   automation_yampi: "Yampi",
+  automation_simplesvet: "SimplesVet",
 };
 
 // Artigo por plataforma: "na Umbler Talk", "na Payt", mas "no Unnichat".
 const platformLocatives: Partial<Record<ProviderConversionRuleOriginDto, string>> = {
   automation_unnichat: "no Unnichat",
+  automation_simplesvet: "no SimplesVet",
   automation_roichat: "no ROI Chat",
 };
 
@@ -110,13 +112,21 @@ function SetupSteps({
       />
     );
   }
-  if (origin === "automation_braip" || origin === "automation_yampi") {
+  if (
+    origin === "automation_braip" ||
+    origin === "automation_yampi" ||
+    origin === "automation_simplesvet"
+  ) {
     // Fase 6.5/6.7: só pela URL única da Braip ou da Yampi (uma para a conta
     // toda).
     return (
       <ol className="integration-steps">
         {singleUrlSetupSteps(
-          origin === "automation_yampi" ? "yampi" : "braip",
+          origin === "automation_yampi"
+            ? "yampi"
+            : origin === "automation_simplesvet"
+              ? "simplesvet"
+              : "braip",
         ).map((step) => (
           <li key={step}>{step}</li>
         ))}
@@ -151,6 +161,7 @@ const singleUrlProviders: Partial<
   automation_payt: "payt",
   automation_braip: "braip",
   automation_yampi: "yampi",
+  automation_simplesvet: "simplesvet",
   automation_unnichat: "unnichat",
   automation_umbler: "umbler",
 };
@@ -186,7 +197,7 @@ function SingleUrlSection({
   // provedor, de todas as conexões.
   const sales = isSalesPlatform(provider);
   const label = sales
-    ? `URL única da ${provider === "braip" ? "Braip" : provider === "yampi" ? "Yampi" : "Payt"} (todas as regras e números)`
+    ? `URL única ${provider === "simplesvet" ? "do SimplesVet" : `da ${provider === "braip" ? "Braip" : provider === "yampi" ? "Yampi" : "Payt"}`} (todas as regras e números)`
     : `URL do evento “${ruleEventLabelForOrigin(origin, eventName)}” (todos os números ${provider === "umbler" ? "da Umbler" : "do Unnichat"}, de todas as conexões)`;
 
   return (
