@@ -49,14 +49,21 @@ export type ParsedRow = { dimensions: Record<string, string>; metrics: Record<st
 export function parseReport(report: Ga4ReportResponse | undefined): ParsedRow[] {
   const dimensionNames = report?.dimensionHeaders?.map((header) => header.name) ?? [];
   const metricNames = report?.metricHeaders?.map((header) => header.name) ?? [];
-  return (report?.rows ?? []).map((row) => ({
-    dimensions: Object.fromEntries(
-      dimensionNames.map((name, index) => [name, row.dimensionValues?.[index]?.value ?? ""]),
-    ),
-    metrics: Object.fromEntries(
-      metricNames.map((name, index) => [name, Number(row.metricValues?.[index]?.value ?? 0)]),
-    ),
-  }));
+  return (report?.rows ?? []).map((row) => {
+    const metrics: Record<string, number> = {};
+    // runFunnelReport repeats every metric header (8 names for 4 values per row);
+    // the first occurrence carries the value, so later duplicates must not overwrite it.
+    metricNames.forEach((name, index) => {
+      const value = row.metricValues?.[index]?.value;
+      if (value !== undefined && !(name in metrics)) metrics[name] = Number(value);
+    });
+    return {
+      dimensions: Object.fromEntries(
+        dimensionNames.map((name, index) => [name, row.dimensionValues?.[index]?.value ?? ""]),
+      ),
+      metrics,
+    };
+  });
 }
 
 function dateRanges(filters: Ga4QueryFilters, withPrevious: boolean) {

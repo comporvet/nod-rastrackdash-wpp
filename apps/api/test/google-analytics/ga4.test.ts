@@ -144,6 +144,25 @@ describe("consultas GA4", () => {
     ]);
   });
 
+  it("lê o funil com os cabeçalhos de métrica repetidos que o GA4 devolve", () => {
+    const headers = ["activeUsers", "funnelStepCompletionRate", "funnelStepAbandonments", "funnelStepAbandonmentRate"];
+    const metricHeaders = [...headers, ...headers].map((name) => ({ name, type: "TYPE_INTEGER" }));
+    const values = (...items: string[]) => items.map((value) => ({ value }));
+    const result = parseFunnel({
+      funnelTable: {
+        dimensionHeaders: [{ name: "funnelStepName" }],
+        metricHeaders,
+        rows: [
+          { dimensionValues: [{ value: "1. Visualização" }], metricValues: values("12", "0.25", "9", "0.75") },
+          { dimensionValues: [{ value: "2. Clique no WhatsApp" }], metricValues: values("3", "1", "0", "0") },
+        ],
+      },
+    });
+    expect(result.steps.map((step) => step.activeUsers)).toEqual([12, 3]);
+    expect(result.steps[0]).toMatchObject({ completionRate: 0.25, abandonments: 9, abandonmentRate: 0.75 });
+    expect(result.progressionRate).toBe(25);
+  });
+
   it("separa os dois períodos pela dimensão dateRange", () => {
     const rows = parseReport({
       dimensionHeaders: [{ name: "dateRange" }],
