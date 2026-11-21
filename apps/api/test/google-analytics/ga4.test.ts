@@ -14,6 +14,7 @@ import {
 import {
   buildCoreRequests,
   buildFunnelRequest,
+  pageLocationPattern,
   parseFunnel,
   parseReport,
   previousPeriod,
@@ -86,23 +87,36 @@ describe("consultas GA4", () => {
     expect(requests.scroll).toBeUndefined();
   });
 
-  it("monta o funil fechado, indireto, com filtro de página nas duas etapas", () => {
+  it("monta o funil fechado, indireto, filtrando page_location nas duas etapas", () => {
     const request = buildFunnelRequest(comporvetEnvironmentPreset[2]!, filters, filters.current) as any;
     expect(request.funnel.isOpenFunnel).toBe(false);
     expect(request.funnel.steps[1].isDirectlyFollowedBy).toBe(false);
-    for (const step of request.funnel.steps) {
-      const fields = step.filterExpression.andGroup.expressions.map(
-        (expression: any) => expression.funnelFieldFilter?.fieldName ?? expression.funnelEventFilter.eventName,
-      );
-      expect(fields).toContain("hostName");
-      expect(fields).toContain("pagePath");
+    expect(JSON.stringify(request.funnel)).not.toMatch(/hostName|pagePath/);
+    const events = request.funnel.steps.map((step: any) => step.filterExpression.funnelEventFilter);
+    expect(events.map((event: any) => event.eventName)).toEqual(["page_view", "click_whatsapp"]);
+    for (const event of events) {
+      expect(event.funnelParameterFilterExpression.funnelParameterFilter).toEqual({
+        eventParameterName: "page_location",
+        stringFilter: { matchType: "FULL_REGEXP", value: pageLocationPattern(comporvetEnvironmentPreset[2]!) },
+      });
     }
-    expect(request.funnel.steps.map((step: any) => step.filterExpression.andGroup.expressions[0].funnelEventFilter.eventName)).toEqual([
-      "page_view",
-      "click_whatsapp",
-    ]);
     expect(request.funnelBreakdown.breakdownDimension.name).toBe("deviceCategory");
     expect(request.dimensionFilter.filter.fieldName).toBe("deviceCategory");
+  });
+
+  const urls: [string, string, boolean][] = [
+    ["site", "https://www.comporvet.com.br", true],
+    ["site", "https://comporvet.com.br/blog/ansiedade?utm_source=x", true],
+    ["site", "https://consultas.comporvet.com.br/", false],
+    ["lp_online", "https://consultas.comporvet.com.br/", true],
+    ["lp_online", "https://consultas.comporvet.com.br/online/?fbclid=1", true],
+    ["lp_online", "https://consultas.comporvet.com.br/presencial/", false],
+    ["lp_presencial", "https://consultas.comporvet.com.br/presencial?utm_medium=paid", true],
+    ["lp_presencial", "https://consultas.comporvet.com.br/presencial/obrigado", false],
+  ];
+  it.each(urls)("page_location de %s: %s -> %s", (key, url, expected) => {
+    const environment = comporvetEnvironmentPreset.find((item) => item.key === key)!;
+    expect(new RegExp(pageLocationPattern(environment)).test(url)).toBe(expected);
   });
 
   it("lê a tabela do funil com total e detalhamento por dispositivo", () => {
@@ -345,6 +359,24 @@ describe("GoogleAnalyticsService", () => {
 });
 
 describe("Ga4Client", () => {
+  it("limita as consultas simultâneas à mesma propriedade", async () => {
+    let active = 0;
+    let peak = 0;
+    const fetchFn = (async (input: string | URL) => {
+      if (String(input).includes("oauth2")) {
+        return new Response(JSON.stringify({ access_token: "tok", expires_in: 3600 }), { status: 200 });
+      }
+      active += 1;
+      peak = Math.max(peak, active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      active -= 1;
+      return new Response(JSON.stringify({ dimensions: [] }), { status: 200 });
+    }) as typeof fetch;
+    const client = new Ga4Client(serviceAccount, fetchFn);
+    await Promise.all(Array.from({ length: 12 }, () => client.getMetadata("1")));
+    expect(peak).toBeLessThanOrEqual(4);
+  });
+
   it("reaproveita o token até perto de expirar", async () => {
     const google = fakeGoogle();
     let now = 0;

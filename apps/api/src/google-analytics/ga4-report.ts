@@ -144,23 +144,32 @@ export function buildAcquisitionRequests(environment: Ga4Environment, filters: G
   );
 }
 
+function unanchored(pattern: string) {
+  return pattern.replace(/^\^/, "").replace(/\$$/, "");
+}
+
+/**
+ * Funnel steps reject hostName/pagePath ("not supported inside segments &
+ * funnel steps"), so the environment is matched on the page_location event
+ * parameter, the same field the GA4 explorations filter on.
+ */
+export function pageLocationPattern(environment: Ga4Environment) {
+  const path = environment.pathPattern ? unanchored(environment.pathPattern) : "(/[^?#]*)?";
+  return `^https?://(?:${unanchored(environment.hostPattern)})(?:${path})([?#].*)?$`;
+}
+
 function funnelStepFilter(environment: Ga4Environment, eventName: string) {
-  const expressions: unknown[] = [{ funnelEventFilter: { eventName } }];
-  expressions.push({
-    funnelFieldFilter: {
-      fieldName: "hostName",
-      stringFilter: { matchType: "FULL_REGEXP", value: environment.hostPattern },
-    },
-  });
-  if (environment.pathPattern) {
-    expressions.push({
-      funnelFieldFilter: {
-        fieldName: "pagePath",
-        stringFilter: { matchType: "FULL_REGEXP", value: environment.pathPattern },
+  return {
+    funnelEventFilter: {
+      eventName,
+      funnelParameterFilterExpression: {
+        funnelParameterFilter: {
+          eventParameterName: "page_location",
+          stringFilter: { matchType: "FULL_REGEXP", value: pageLocationPattern(environment) },
+        },
       },
-    });
-  }
-  return { andGroup: { expressions } };
+    },
+  };
 }
 
 export const FUNNEL_STEP_NAMES = ["Visualização", "Clique no WhatsApp"] as const;

@@ -56,8 +56,13 @@ export function signServiceAccountAssertion(key: ServiceAccountKey, nowSeconds: 
 
 type CachedToken = { value: string; expiresAt: number };
 
+// The Data API allows 10 concurrent requests per property; stay well below it.
+const MAX_CONCURRENT_REQUESTS = 4;
+
 export class Ga4Client {
   private token: CachedToken | null = null;
+  private active = 0;
+  private readonly waiting: (() => void)[] = [];
 
   constructor(
     private readonly key: ServiceAccountKey,
@@ -148,6 +153,21 @@ export class Ga4Client {
   }
 
   private async call<T>(method: "GET" | "POST", url: string, body?: unknown): Promise<T> {
+    if (this.active >= MAX_CONCURRENT_REQUESTS) {
+      await new Promise<void>((resolve) => this.waiting.push(resolve));
+    } else {
+      this.active += 1;
+    }
+    try {
+      return await this.send<T>(method, url, body);
+    } finally {
+      const next = this.waiting.shift();
+      if (next) next();
+      else this.active -= 1;
+    }
+  }
+
+  private async send<T>(method: "GET" | "POST", url: string, body?: unknown): Promise<T> {
     const token = await this.accessToken();
     let response: Response;
     try {
