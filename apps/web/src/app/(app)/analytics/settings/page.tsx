@@ -301,7 +301,7 @@ function FunnelDiagnosticsResult({ diagnostics }: { diagnostics: FunnelDiagnosti
         </h2>
         <p>
           Etapa 1 = page_view, etapa 2 = click_whatsapp, funil fechado e indireto. A linha que bate com a exploração do
-          GA4 mostra qual filtro usar.
+          GA4 mostra qual filtro usar. Sessões de teste excluídas, como no painel.
         </p>
       </header>
       {diagnostics.environments.map((environment) => (

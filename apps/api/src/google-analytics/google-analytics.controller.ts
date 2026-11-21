@@ -80,6 +80,7 @@ export class GoogleAnalyticsController {
     @Query("sourceMedium") sourceMedium?: string | string[],
     @Query("campaign") campaign?: string | string[],
     @Query("refresh") refresh?: string | string[],
+    @Query("includeTests") includeTests?: string | string[],
   ) {
     const { workspace } = await this.context(token, "canViewReports");
     return this.ga4.report(workspace.id, {
@@ -90,6 +91,7 @@ export class GoogleAnalyticsController {
       sourceMedium: single(sourceMedium),
       campaign: single(campaign),
       refresh: single(refresh) === "1",
+      includeTestTraffic: single(includeTests) === "1",
     });
   }
 

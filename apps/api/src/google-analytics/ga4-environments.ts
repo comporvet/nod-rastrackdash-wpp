@@ -58,6 +58,7 @@ type StringFilter = { matchType: "FULL_REGEXP" | "EXACT"; value: string };
 
 export type Ga4FilterExpression =
   | { andGroup: { expressions: Ga4FilterExpression[] } }
+  | { notExpression: Ga4FilterExpression }
   | { filter: { fieldName: string; stringFilter?: StringFilter; inListFilter?: { values: string[] } } };
 
 function regexFilter(fieldName: string, value: string): Ga4FilterExpression {

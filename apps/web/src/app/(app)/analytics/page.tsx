@@ -217,7 +217,9 @@ function FunnelBody({ funnel, previous, color }: { funnel: Ga4Funnel; previous: 
           <>
             {funnel.method === "event_ratio_fallback" ? (
               <p className="ga4-note warn">Aproximação, não é funil sequencial. {funnel.message}</p>
-            ) : null}
+            ) : (
+              <p className="ga4-note">Fonte: runFunnelReport do GA4 (funil sequencial).</p>
+            )}
             <div className="ga4-funnel-steps">
               {data.steps.map((step, index) => (
                 <div key={step.name} className="ga4-funnel-step">
@@ -459,6 +461,10 @@ function FilterForm({ params, environments }: { params: SearchParams; environmen
         <input type="checkbox" name="compare" value="1" defaultChecked={param(params, "compare") === "1"} />
         <span>Comparar com o período anterior</span>
       </label>
+      <label className="ga4-checkbox">
+        <input type="checkbox" name="includeTests" value="1" defaultChecked={param(params, "includeTests") === "1"} />
+        <span>Incluir sessões de teste</span>
+      </label>
       <button className="button primary" type="submit">
         Aplicar
       </button>
@@ -485,7 +491,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
   const canConfigure = workspace.permissions.canManageIntegrations;
 
   const query = new URLSearchParams();
-  for (const name of ["since", "until", "device", "sourceMedium", "campaign", "compare", "refresh"]) {
+  for (const name of ["since", "until", "device", "sourceMedium", "campaign", "compare", "includeTests", "refresh"]) {
     const value = param(params, name);
     if (value) query.set(name, value);
   }
@@ -550,6 +556,11 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
               ? `, comparado a ${formatDate(report.filters.previous.since)} a ${formatDate(report.filters.previous.until)}`
               : ""}
             . Datas no fuso da propriedade GA4. Dados de até 48 horas podem estar em processamento.
+            {report.testTrafficSources?.length
+              ? report.filters?.includeTestTraffic
+                ? ` Sessões de teste incluídas (${report.testTrafficSources.join(", ")}).`
+                : ` Sessões de teste excluídas: origem ${report.testTrafficSources.join(" ou ")}.`
+              : ""}
             {report.generatedAt ? ` Consultado em ${new Date(report.generatedAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}.` : ""}
           </p>
 

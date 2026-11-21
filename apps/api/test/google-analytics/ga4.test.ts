@@ -13,6 +13,7 @@ import {
 } from "../../src/google-analytics/ga4-environments";
 import {
   buildCoreRequests,
+  TEST_TRAFFIC_SOURCES,
   buildFunnelRequest,
   pageLocationPattern,
   parseFunnel,
@@ -82,6 +83,18 @@ describe("consultas GA4", () => {
     expect(Object.keys(requests)).toEqual(["totals", "events", "daily", "dailyWhatsapp", "scroll"]);
   });
 
+  it("exclui as sessões de teste por padrão e inclui quando pedido", () => {
+    const excluded = JSON.stringify(buildCoreRequests(comporvetEnvironmentPreset[1]!, filters, { scrollDimensionAvailable: true }));
+    expect(excluded).toContain('"notExpression"');
+    expect(excluded).toContain("tagassistant.google.com");
+    const included = JSON.stringify(
+      buildCoreRequests(comporvetEnvironmentPreset[1]!, { ...filters, includeTestTraffic: true }, { scrollDimensionAvailable: true }),
+    );
+    expect(included).not.toContain("tagassistant.google.com");
+    const funnel = JSON.stringify(buildFunnelRequest(comporvetEnvironmentPreset[0]!, { ...filters, device: undefined }, filters.current));
+    expect(funnel).toContain('"notExpression"');
+  });
+
   it("omite a consulta de rolagem sem a dimensão personalizada", () => {
     const requests = buildCoreRequests(comporvetEnvironmentPreset[0]!, filters, { scrollDimensionAvailable: false });
     expect(requests.scroll).toBeUndefined();
@@ -101,7 +114,10 @@ describe("consultas GA4", () => {
       });
     }
     expect(request.funnelBreakdown.breakdownDimension.name).toBe("deviceCategory");
-    expect(request.dimensionFilter.filter.fieldName).toBe("deviceCategory");
+    expect(request.dimensionFilter.andGroup.expressions).toEqual([
+      { filter: { fieldName: "deviceCategory", stringFilter: { matchType: "EXACT", value: "mobile" } } },
+      { notExpression: { filter: { fieldName: "sessionSource", inListFilter: { values: TEST_TRAFFIC_SOURCES } } } },
+    ]);
   });
 
   const urls: [string, string, boolean][] = [

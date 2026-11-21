@@ -22,6 +22,7 @@ import {
   MODALIDADE_DIMENSION,
   SCROLL_MILESTONES,
   SCROLL_PERCENT_DIMENSION,
+  TEST_TRAFFIC_SOURCES,
   buildAcquisitionRequests,
   buildCoreRequests,
   buildFunnelRequest,
@@ -83,6 +84,7 @@ export type Ga4ReportQuery = {
   device?: string;
   sourceMedium?: string;
   campaign?: string;
+  includeTestTraffic?: boolean;
   refresh?: boolean;
 };
 
@@ -331,7 +333,7 @@ export class GoogleAnalyticsService {
         ),
       })),
     );
-    return { propertyId: row.propertyId, range: filters.current, environments };
+    return { propertyId: row.propertyId, range: filters.current, testTrafficSources: TEST_TRAFFIC_SOURCES, environments };
   }
 
   async report(workspaceId: string, query: Ga4ReportQuery) {
@@ -367,6 +369,7 @@ export class GoogleAnalyticsService {
       propertyId: row.propertyId,
       generatedAt: new Date().toISOString(),
       filters,
+      testTrafficSources: TEST_TRAFFIC_SOURCES,
       customDimensions: {
         [SCROLL_PERCENT_DIMENSION]: scrollDimensionAvailable,
         [MODALIDADE_DIMENSION]: dimensions.has(MODALIDADE_DIMENSION),
@@ -633,6 +636,7 @@ export class GoogleAnalyticsService {
       device: clean(query.device),
       sourceMedium: clean(query.sourceMedium),
       campaign: clean(query.campaign),
+      includeTestTraffic: Boolean(query.includeTestTraffic),
     };
   }
 

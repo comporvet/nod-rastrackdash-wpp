@@ -37,7 +37,7 @@ A chave nunca volta para o painel. Para trocar, cole uma nova; deixar vazio mant
 | Rolagem | `scroll_depth` com `customEvent:scroll_percent` nos marcos 10, 25, 50, 75, 90 e 100: usuários distintos que alcançaram **pelo menos** cada marco (uma consulta sem a dimensão de página, para não somar a mesma pessoa duas vezes) e a tabela por página. Não é ponto de abandono. |
 | Aquisição | `sessionSourceMedium`, `sessionDefaultChannelGroup`, `sessionCampaignName` e `deviceCategory`. |
 
-Filtros globais: período, comparação, ambiente, dispositivo, origem/mídia e campanha (valor exato). **Atualizar agora** ignora o cache de 10 minutos. No máximo 4 consultas simultâneas por propriedade, abaixo do limite de 10 da Data API.
+Filtros globais: período, comparação, ambiente, dispositivo, origem/mídia e campanha (valor exato). Sessões de teste (origem `tagassistant.google.com`, do preview do GTM/Tag Assistant, e `eventsmanager.facebook.com`, do teste de eventos da Meta) ficam fora de todos os números, funis inclusive, a não ser que **Incluir sessões de teste** esteja marcado; a tela diz qual dos dois está valendo. Cada funil mostra a fonte: `runFunnelReport` ou a aproximação. **Atualizar agora** ignora o cache de 10 minutos. No máximo 4 consultas simultâneas por propriedade, abaixo do limite de 10 da Data API.
 
 Cada bloco mostra o próprio estado: Conectado, Sem autorização, Configuração incompleta, Sem dados para o período, Cota da API esgotada, Erro temporário de API. Falha nunca aparece como zero.
 

@@ -42,7 +42,25 @@ export type Ga4QueryFilters = {
   device?: string;
   sourceMedium?: string;
   campaign?: string;
+  includeTestTraffic?: boolean;
 };
+
+/**
+ * Sessions opened by tag debugging tools (GTM preview / Tag Assistant and the
+ * Meta Events Manager test tool). Excluded unless the viewer asks for them.
+ */
+export const TEST_TRAFFIC_SOURCES = ["tagassistant.google.com", "eventsmanager.facebook.com"];
+
+function sessionFilters(filters: Ga4QueryFilters): Ga4FilterExpression[] {
+  const result: Ga4FilterExpression[] = [];
+  if (filters.device) result.push(exactFilter("deviceCategory", filters.device));
+  if (filters.sourceMedium) result.push(exactFilter("sessionSourceMedium", filters.sourceMedium));
+  if (filters.campaign) result.push(exactFilter("sessionCampaignName", filters.campaign));
+  if (!filters.includeTestTraffic) {
+    result.push({ notExpression: inListFilter("sessionSource", TEST_TRAFFIC_SOURCES) });
+  }
+  return result;
+}
 
 export type ParsedRow = { dimensions: Record<string, string>; metrics: Record<string, number> };
 
@@ -75,11 +93,7 @@ function dateRanges(filters: Ga4QueryFilters, withPrevious: boolean) {
 }
 
 export function scopeFilters(environment: Ga4Environment, filters: Ga4QueryFilters): Ga4FilterExpression[] {
-  const scope = environmentFilters(environment);
-  if (filters.device) scope.push(exactFilter("deviceCategory", filters.device));
-  if (filters.sourceMedium) scope.push(exactFilter("sessionSourceMedium", filters.sourceMedium));
-  if (filters.campaign) scope.push(exactFilter("sessionCampaignName", filters.campaign));
-  return scope;
+  return [...environmentFilters(environment), ...sessionFilters(filters)];
 }
 
 function withEvent(scope: Ga4FilterExpression[], event: Ga4FilterExpression) {
@@ -213,10 +227,7 @@ export function buildFunnelRequest(
   options: { strategy?: FunnelPageStrategy; breakdown?: boolean } = {},
 ) {
   const strategy = options.strategy ?? "param_page_location";
-  const extra: Ga4FilterExpression[] = [];
-  if (filters.device) extra.push(exactFilter("deviceCategory", filters.device));
-  if (filters.sourceMedium) extra.push(exactFilter("sessionSourceMedium", filters.sourceMedium));
-  if (filters.campaign) extra.push(exactFilter("sessionCampaignName", filters.campaign));
+  const extra = sessionFilters(filters);
   return {
     dateRanges: [{ startDate: range.since, endDate: range.until }],
     funnel: {

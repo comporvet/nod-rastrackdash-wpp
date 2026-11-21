@@ -84,7 +84,9 @@ export type Ga4Report = {
     device?: string;
     sourceMedium?: string;
     campaign?: string;
+    includeTestTraffic?: boolean;
   };
+  testTrafficSources?: string[];
   customDimensions?: Record<string, boolean>;
   environments?: Ga4EnvironmentReport[];
 };
