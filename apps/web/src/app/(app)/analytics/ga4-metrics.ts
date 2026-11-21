@@ -71,8 +71,8 @@ const definitions: Definition[] = [
   {
     key: "averageEngagementTimePerSession",
     label: "Engajamento médio por sessão",
-    hint: "averageEngagementTimePerSession, em segundos",
-    source: "GA4",
+    hint: "userEngagementDuration / sessions, em segundos",
+    source: "GA4 (calculado)",
     format: "seconds",
     read: (report, range) => report.core.data?.totals[range]?.averageEngagementTimePerSession ?? null,
   },

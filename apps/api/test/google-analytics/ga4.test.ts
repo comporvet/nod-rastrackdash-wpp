@@ -307,6 +307,9 @@ describe("GoogleAnalyticsService", () => {
     const site = report.environments[0];
     expect(site.core.status).toBe("ok");
     expect(site.core.data.daily).toHaveLength(3);
+    expect(site.core.data.totals.current.averageEngagementTimePerSession).toBe(1);
+    const totalsRequest = google.calls.find((call) => call.url.includes(":batchRunReports"))!.body.requests[0];
+    expect(totalsRequest.metrics.map((metric: any) => metric.name)).not.toContain("averageEngagementTimePerSession");
     expect(site.core.data.events.current.click_whatsapp).toEqual({ eventCount: 2, totalUsers: 1 });
     expect(site.funnel).toMatchObject({ status: "ok", method: "funnel_report" });
     expect(site.funnel.data.progressionRate).toBeCloseTo(5.555, 2);

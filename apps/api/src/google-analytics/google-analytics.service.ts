@@ -104,10 +104,15 @@ function rangeFilter(rows: ParsedRow[], name: "current" | "previous") {
 
 function totalsFrom(rows: ParsedRow[]) {
   const row = rows[0];
-  return Object.fromEntries(totalsMetrics.map((name) => [name, row?.metrics[name] ?? 0])) as Record<
+  const totals = Object.fromEntries(totalsMetrics.map((name) => [name, row?.metrics[name] ?? 0])) as Record<
     (typeof totalsMetrics)[number],
     number
   >;
+  // The Data API has no per-session engagement average; derive it from the total duration.
+  return {
+    ...totals,
+    averageEngagementTimePerSession: totals.sessions > 0 ? totals.userEngagementDuration / totals.sessions : 0,
+  };
 }
 
 function eventsFrom(rows: ParsedRow[]) {

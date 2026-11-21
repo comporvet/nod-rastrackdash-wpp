@@ -31,7 +31,7 @@ A chave nunca volta para o painel. Para trocar, cole uma nova; deixar vazio mant
 
 | Bloco | Fonte e regra |
 |---|---|
-| Cards e comparação | `totalUsers`, `activeUsers`, `sessions`, `screenPageViews`, `engagementRate`, `averageEngagementTimePerSession`; eventos e usuários de `click_whatsapp`. Variação contra o período anterior de mesmo tamanho. Exporta CSV. |
+| Cards e comparação | `totalUsers`, `activeUsers`, `sessions`, `screenPageViews`, `engagementRate` e engajamento médio por sessão (`userEngagementDuration` / `sessions`); eventos e usuários de `click_whatsapp`. Variação contra o período anterior de mesmo tamanho. Exporta CSV. |
 | Série diária | Visualizações e eventos `click_whatsapp` por dia. |
 | Funis | `runFunnelReport` (v1alpha): funil fechado, etapa 1 `page_view`, etapa 2 `click_whatsapp` com `isDirectlyFollowedBy: false`, filtro de host e caminho nas duas etapas, detalhado por `deviceCategory`. Progressão = etapa 2 / etapa 1 × 100. |
 | Rolagem | `scroll_depth` com `customEvent:scroll_percent` nos marcos 10, 25, 50, 75, 90 e 100: usuários distintos que alcançaram **pelo menos** cada marco (uma consulta sem a dimensão de página, para não somar a mesma pessoa duas vezes) e a tabela por página. Não é ponto de abandono. |

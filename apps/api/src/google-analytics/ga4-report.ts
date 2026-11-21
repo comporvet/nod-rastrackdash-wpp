@@ -22,7 +22,7 @@ export const totalsMetrics = [
   "screenPageViews",
   "engagedSessions",
   "engagementRate",
-  "averageEngagementTimePerSession",
+  "userEngagementDuration",
 ] as const;
 
 const acquisitionMetrics = ["sessions", "activeUsers", "engagedSessions", "screenPageViews"] as const;
