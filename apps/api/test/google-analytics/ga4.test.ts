@@ -352,6 +352,25 @@ describe("GoogleAnalyticsService", () => {
     expect(prisma.row.lastErrorKind).toBe("unauthorized");
   });
 
+  it("diagnostica o funil com cada forma de filtrar a página, sem credenciais", async () => {
+    const { service, google } = await connectedService();
+    const result: any = await service.funnelDiagnostics("ws_1", { since: "2026-11-01", until: "2026-11-20" });
+    expect(result.environments).toHaveLength(3);
+    const variants = result.environments[1].variants;
+    expect(variants.map((variant: any) => [variant.strategy, variant.breakdown])).toEqual([
+      ["param_page_location", false],
+      ["field_pageLocation", false],
+      ["field_hostName", false],
+      ["none", false],
+      ["param_page_location", true],
+    ]);
+    expect(variants[0]).toMatchObject({ status: "ok", steps: [18, 1] });
+    expect(JSON.stringify(result)).not.toContain("PRIVATE KEY");
+    const funnelBodies = google.calls.filter((call) => call.url.includes(":runFunnelReport")).map((call) => call.body);
+    expect(funnelBodies.some((body) => JSON.stringify(body.funnel).includes('"fieldName":"pageLocation"'))).toBe(true);
+    expect(funnelBodies.some((body) => !JSON.stringify(body.funnel).includes("page_location") && !JSON.stringify(body.funnel).includes("fieldName"))).toBe(true);
+  });
+
   it("sem conexão responde configuração incompleta", async () => {
     const service = new GoogleAnalyticsService(fakePrisma() as any, env, fakeGoogle().fetchFn);
     await expect(service.report("ws_1", {})).resolves.toMatchObject({ status: "incomplete_config" });

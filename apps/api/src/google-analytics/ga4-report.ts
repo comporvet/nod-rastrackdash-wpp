@@ -158,23 +158,54 @@ export function pageLocationPattern(environment: Ga4Environment) {
   return `^https?://(?:${unanchored(environment.hostPattern)})(?:${path})([?#].*)?$`;
 }
 
-function funnelStepFilter(environment: Ga4Environment, eventName: string) {
-  return {
-    funnelEventFilter: {
-      eventName,
-      funnelParameterFilterExpression: {
-        funnelParameterFilter: {
-          eventParameterName: "page_location",
-          stringFilter: { matchType: "FULL_REGEXP", value: pageLocationPattern(environment) },
+export const FUNNEL_PAGE_STRATEGIES = [
+  "param_page_location",
+  "field_pageLocation",
+  "field_hostName",
+  "none",
+] as const;
+
+export type FunnelPageStrategy = (typeof FUNNEL_PAGE_STRATEGIES)[number];
+
+function funnelStepFilter(environment: Ga4Environment, eventName: string, strategy: FunnelPageStrategy) {
+  const event = { funnelEventFilter: { eventName } };
+  if (strategy === "none") return event;
+  if (strategy === "param_page_location") {
+    return {
+      funnelEventFilter: {
+        eventName,
+        funnelParameterFilterExpression: {
+          funnelParameterFilter: {
+            eventParameterName: "page_location",
+            stringFilter: { matchType: "FULL_REGEXP", value: pageLocationPattern(environment) },
+          },
         },
       },
+    };
+  }
+  const field =
+    strategy === "field_pageLocation"
+      ? { fieldName: "pageLocation", value: pageLocationPattern(environment) }
+      : { fieldName: "hostName", value: environment.hostPattern };
+  return {
+    andGroup: {
+      expressions: [
+        event,
+        { funnelFieldFilter: { fieldName: field.fieldName, stringFilter: { matchType: "FULL_REGEXP", value: field.value } } },
+      ],
     },
   };
 }
 
 export const FUNNEL_STEP_NAMES = ["Visualização", "Clique no WhatsApp"] as const;
 
-export function buildFunnelRequest(environment: Ga4Environment, filters: Ga4QueryFilters, range: Ga4DateRange) {
+export function buildFunnelRequest(
+  environment: Ga4Environment,
+  filters: Ga4QueryFilters,
+  range: Ga4DateRange,
+  options: { strategy?: FunnelPageStrategy; breakdown?: boolean } = {},
+) {
+  const strategy = options.strategy ?? "param_page_location";
   const extra: Ga4FilterExpression[] = [];
   if (filters.device) extra.push(exactFilter("deviceCategory", filters.device));
   if (filters.sourceMedium) extra.push(exactFilter("sessionSourceMedium", filters.sourceMedium));
@@ -184,15 +215,15 @@ export function buildFunnelRequest(environment: Ga4Environment, filters: Ga4Quer
     funnel: {
       isOpenFunnel: false,
       steps: [
-        { name: FUNNEL_STEP_NAMES[0], filterExpression: funnelStepFilter(environment, EVENT_PAGE_VIEW) },
+        { name: FUNNEL_STEP_NAMES[0], filterExpression: funnelStepFilter(environment, EVENT_PAGE_VIEW, strategy) },
         {
           name: FUNNEL_STEP_NAMES[1],
           isDirectlyFollowedBy: false,
-          filterExpression: funnelStepFilter(environment, EVENT_WHATSAPP),
+          filterExpression: funnelStepFilter(environment, EVENT_WHATSAPP, strategy),
         },
       ],
     },
-    funnelBreakdown: { breakdownDimension: { name: "deviceCategory" } },
+    ...(options.breakdown === false ? {} : { funnelBreakdown: { breakdownDimension: { name: "deviceCategory" } } }),
     ...(extra.length ? { dimensionFilter: andFilters(extra) } : {}),
   };
 }

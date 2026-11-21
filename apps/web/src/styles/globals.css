@@ -17705,3 +17705,21 @@ button.meta-manual-entry[aria-expanded="true"] {
     grid-column: 2 / -1;
   }
 }
+
+.ga4-diagnostic-env {
+  display: grid;
+  gap: 8px;
+}
+
+.ga4-raw {
+  max-height: 420px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--graphite-950);
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre;
+}

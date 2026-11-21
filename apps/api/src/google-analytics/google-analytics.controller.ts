@@ -60,6 +60,16 @@ export class GoogleAnalyticsController {
     return this.ga4.discover(workspace.id);
   }
 
+  @Get("funnel-diagnostics")
+  async funnelDiagnostics(
+    @AuthToken() token: string,
+    @Query("since") since?: string | string[],
+    @Query("until") until?: string | string[],
+  ) {
+    const { workspace } = await this.context(token, "canManageIntegrations");
+    return this.ga4.funnelDiagnostics(workspace.id, { since: single(since), until: single(until) });
+  }
+
   @Get("report")
   async report(
     @AuthToken() token: string,

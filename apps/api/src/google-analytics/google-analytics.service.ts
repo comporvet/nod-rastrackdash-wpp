@@ -18,12 +18,14 @@ import {
   EVENT_PAGE_VIEW,
   EVENT_SCROLL,
   EVENT_WHATSAPP,
+  FUNNEL_PAGE_STRATEGIES,
   MODALIDADE_DIMENSION,
   SCROLL_MILESTONES,
   SCROLL_PERCENT_DIMENSION,
   buildAcquisitionRequests,
   buildCoreRequests,
   buildFunnelRequest,
+  pageLocationPattern,
   parseFunnel,
   parseReport,
   previousPeriod,
@@ -283,6 +285,53 @@ export class GoogleAnalyticsService {
           : { lastErrorKind: property.status, lastErrorMessage: property.message?.slice(0, 500) ?? null },
     });
     return result;
+  }
+
+  /**
+   * Runs the same two-step funnel with each way of scoping it to the page, so
+   * a zeroed funnel can be traced to the filter. Returns the raw funnel table
+   * (headers and first rows), never credentials.
+   */
+  async funnelDiagnostics(workspaceId: string, query: Ga4ReportQuery) {
+    const row = await this.requireConnection(workspaceId);
+    const client = this.clientFor(row);
+    const filters = this.parseFilters({ since: query.since, until: query.until });
+    const variants = [
+      ...FUNNEL_PAGE_STRATEGIES.map((strategy) => ({ strategy, breakdown: false })),
+      { strategy: "param_page_location" as const, breakdown: true },
+    ];
+    const environments = await Promise.all(
+      this.environmentsOf(row).map(async (environment) => ({
+        key: environment.key,
+        label: environment.label,
+        pageLocationPattern: pageLocationPattern(environment),
+        variants: await Promise.all(
+          variants.map(async (variant) => {
+            const request = buildFunnelRequest(environment, filters, filters.current, variant);
+            try {
+              const response = await client.runFunnelReport(row.propertyId, request);
+              const parsed = parseFunnel(response);
+              return {
+                ...variant,
+                status: "ok" as SectionStatus,
+                steps: parsed.steps.map((step) => step.activeUsers),
+                raw: {
+                  dimensionHeaders: response.funnelTable?.dimensionHeaders ?? [],
+                  metricHeaders: response.funnelTable?.metricHeaders ?? [],
+                  rows: (response.funnelTable?.rows ?? []).slice(0, 8),
+                  rowCount: response.funnelTable?.rowCount ?? null,
+                },
+                stepsRequest: request.funnel.steps,
+              };
+            } catch (error) {
+              const section = failed(error);
+              return { ...variant, status: section.status, message: section.message, steps: null, raw: null, stepsRequest: request.funnel.steps };
+            }
+          }),
+        ),
+      })),
+    );
+    return { propertyId: row.propertyId, range: filters.current, environments };
   }
 
   async report(workspaceId: string, query: Ga4ReportQuery) {

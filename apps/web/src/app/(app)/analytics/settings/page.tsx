@@ -19,6 +19,23 @@ type Discovery = {
   customDimensions: Ga4Section<{ apiName: string; available: boolean }[]>;
 };
 
+type FunnelDiagnostics = {
+  propertyId: string;
+  range: { since: string; until: string };
+  environments: {
+    key: string;
+    label: string;
+    pageLocationPattern: string;
+    variants: {
+      strategy: string;
+      breakdown: boolean;
+      status: Ga4SectionStatus;
+      message?: string;
+      steps: number[] | null;
+    }[];
+  }[];
+};
+
 function single(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -147,6 +164,15 @@ export default async function Ga4SettingsPage({ searchParams }: { searchParams?:
       discoveryError = isApiRequestError(error) ? error.message : "API indisponível";
     }
   }
+  let funnel: FunnelDiagnostics | null = null;
+  let funnelError: string | null = null;
+  if (connection.configured && single(params.funnel) === "1") {
+    try {
+      funnel = await serverApiFetch<FunnelDiagnostics>("/google-analytics/funnel-diagnostics");
+    } catch (error) {
+      funnelError = isApiRequestError(error) ? error.message : "API indisponível";
+    }
+  }
   const error = single(params.error);
   const environments = connection.configured ? connection.environments : connection.environmentPreset;
 
@@ -240,6 +266,9 @@ export default async function Ga4SettingsPage({ searchParams }: { searchParams?:
             <Link className="button ghost" href="/analytics/settings?discover=1" prefetch={false}>
               Testar acesso de novo
             </Link>
+            <Link className="button ghost" href="/analytics/settings?funnel=1" prefetch={false}>
+              Diagnóstico do funil
+            </Link>
             <form action={deleteGa4Connection}>
               <SubmitButton className="button danger" pendingLabel="Removendo...">Remover conexão</SubmitButton>
             </form>
@@ -249,6 +278,68 @@ export default async function Ga4SettingsPage({ searchParams }: { searchParams?:
 
       {discoveryError ? <p className="ga4-note bad">{discoveryError}</p> : null}
       {discovery ? <DiscoveryResult discovery={discovery} /> : null}
+      {funnelError ? <p className="ga4-note bad">{funnelError}</p> : null}
+      {funnel ? <FunnelDiagnosticsResult diagnostics={funnel} /> : null}
+    </section>
+  );
+}
+
+const strategyLabels: Record<string, string> = {
+  param_page_location: "Parâmetro page_location do evento",
+  field_pageLocation: "Campo pageLocation",
+  field_hostName: "Campo hostName (só o domínio)",
+  none: "Sem filtro de página (propriedade inteira)",
+};
+
+function FunnelDiagnosticsResult({ diagnostics }: { diagnostics: FunnelDiagnostics }) {
+  return (
+    <section className="surface-panel ga4-panel">
+      <header className="ga4-panel-header">
+        <span className="eyebrow">Diagnóstico do funil</span>
+        <h2>
+          Mesmo funil, filtros diferentes ({diagnostics.range.since} a {diagnostics.range.until})
+        </h2>
+        <p>
+          Etapa 1 = page_view, etapa 2 = click_whatsapp, funil fechado e indireto. A linha que bate com a exploração do
+          GA4 mostra qual filtro usar.
+        </p>
+      </header>
+      {diagnostics.environments.map((environment) => (
+        <div key={environment.key} className="ga4-diagnostic-env">
+          <h4>{environment.label}</h4>
+          <p className="ga4-note">
+            Regex de page_location: <code>{environment.pageLocationPattern}</code>
+          </p>
+          <div className="table-wrap ga4-table-wrap">
+            <table className="ga4-table compact">
+              <thead>
+                <tr>
+                  <th scope="col">Filtro</th>
+                  <th scope="col">Por dispositivo</th>
+                  <th scope="col">Etapa 1</th>
+                  <th scope="col">Etapa 2</th>
+                  <th scope="col">Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {environment.variants.map((variant) => (
+                  <tr key={`${variant.strategy}-${variant.breakdown}`}>
+                    <th scope="row">{strategyLabels[variant.strategy] ?? variant.strategy}</th>
+                    <td>{variant.breakdown ? "sim" : "não"}</td>
+                    <td>{variant.steps?.[0] ?? "—"}</td>
+                    <td>{variant.steps?.[1] ?? "—"}</td>
+                    <td>{variant.status === "ok" ? "respondeu" : `${variant.status}: ${variant.message ?? ""}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <details className="ga4-details">
+            <summary>Resposta bruta do GA4 (sem credenciais)</summary>
+            <pre className="ga4-raw">{JSON.stringify(environment.variants, null, 2)}</pre>
+          </details>
+        </div>
+      ))}
     </section>
   );
 }
