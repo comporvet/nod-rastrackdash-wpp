@@ -7,6 +7,16 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **One new migration (`20261121120000_google_analytics_connection`, additive) and no new variable.**
+
+### Added
+
+- **Site e LPs** (`/analytics`): GA4 traffic, engagement, scroll depth and
+  page view → WhatsApp click funnels per environment (host and path rules),
+  read-only through the Google Analytics Data API with a service account.
+  Configuration and discovery in `/analytics/settings`. Guide:
+  [`docs/setup/google-analytics.md`](docs/setup/google-analytics.md).
+
 ## [1.3.3] - 2026-11-03
 
 Upgrade notes for students: [`docs/releases/1.3.3.json`](docs/releases/1.3.3.json). **No new migration and no new variable.**

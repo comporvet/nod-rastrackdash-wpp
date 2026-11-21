@@ -29,6 +29,7 @@ import { WorkspacesModule } from "./workspaces/workspaces.module";
 import { OpsAlertsModule } from "./ops-alerts/ops-alerts.module";
 import { KommoModule } from "./kommo/kommo.module";
 import { PipedriveModule } from "./pipedrive/pipedrive.module";
+import { GoogleAnalyticsModule } from "./google-analytics/google-analytics.module";
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { PipedriveModule } from "./pipedrive/pipedrive.module";
     TemplateVersionModule,
     KommoModule,
     PipedriveModule,
+    GoogleAnalyticsModule,
   ],
   controllers: [HealthController],
   providers: [

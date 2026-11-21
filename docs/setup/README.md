@@ -37,6 +37,8 @@ Os dois caminhos de instalação convergem nos mesmos passos de produto: licenç
 9. Deploy Dokploy (API) + Vercel (web) — ou permaneça local.
 10. [Guia de cobrança](billing/README.md) — opcional, gateway BYO do aluno.
 
+Google Analytics 4 do site e das landing pages (tela **Site e LPs**, opcional): [`google-analytics.md`](google-analytics.md).
+
 Algo deu errado em qualquer passo? Vá direto para [`troubleshooting.md`](troubleshooting.md).
 
 ## Checklist in-app

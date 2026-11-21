@@ -1,15 +1,17 @@
 {
   "version": "PENDENTE: versão definida pelo mantenedor",
-  "title": "PENDENTE: título da atualização",
-  "summary": "PENDENTE: benefício e impacto para o aluno",
-  "changes": "PENDENTE: novidades e melhorias incluídas",
+  "title": "Site e LPs: Google Analytics 4 no painel",
+  "summary": "Tráfego, engajamento, rolagem e funil até o WhatsApp do site e das landing pages, lidos do GA4 e separados por ambiente.",
+  "changes": "Nova tela Site e LPs (/analytics) com cards, comparação entre ambientes, série diária, funis do GA4 (runFunnelReport), alcance de rolagem e aquisição. Configuração em /analytics/settings com conta de serviço e descoberta de propriedade, fluxos e dimensões personalizadas.",
   "fixes": "",
-  "requirements": "PENDENTE: requisitos reais ou declaração de que não mudaram",
-  "upgradeGuide": "PENDENTE: preparar passos verificados\nBackup: informar cópia e cuidados aplicáveis.\nMigration: informar quais e a ordem, ou não se aplica.\nVariáveis de ambiente: informar nomes e finalidade, sem valores secretos.\nPreservação de customizações: preservar alterações locais do aluno.\nVerificação: informar verificações e resultado esperado.",
-  "rollback": "PENDENTE: procedimento de recuperação verificado e limitações",
+  "requirements": "Projeto Google Cloud com Google Analytics Data API e Admin API ativadas, conta de serviço com papel Leitor na propriedade GA4. A API precisa de INBOUND_WEBHOOKS_ENABLED=true e INBOUND_WEBHOOK_ENCRYPTION_KEY, já obrigatórias desde a 1.3.0.",
+  "upgradeGuide": "Backup: faça backup do PostgreSQL antes do redeploy.\nMigration: 20261121120000_google_analytics_connection, aditiva (só cria a tabela GoogleAnalyticsConnection); roda sozinha no boot da API.\nVariáveis de ambiente: nenhuma nova. Não troque INBOUND_WEBHOOK_ENCRYPTION_KEY de uma instalação no ar.\nPreservação de customizações: nenhuma tela existente muda; o menu ganha o item Site e LPs.\nVerificação: abra Site e LPs → Configurar GA4, salve a propriedade e a chave JSON e confira na descoberta o acesso à propriedade, os fluxos e as dimensões personalizadas. PENDENTE: reconciliar os números com o GA4 para o mesmo período, fuso e filtros.",
+  "rollback": "Volte para a imagem anterior da API e do web. A tabela GoogleAnalyticsConnection pode ficar no banco sem efeito; nada mais depende dela.",
   "minVersion": null,
   "breakingChange": false,
   "components": "BOTH",
-  "links": [],
+  "links": [
+    "docs/setup/google-analytics.md"
+  ],
   "tags": []
 }

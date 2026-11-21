@@ -17272,3 +17272,436 @@ button.meta-manual-entry[aria-expanded="true"] {
 .app-shell select option:disabled {
   color: var(--ink-muted);
 }
+
+/* Site e LPs (GA4) */
+.ga4-page {
+  --ga4-surface: #0c1715;
+}
+
+.ga4-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.ga4-note.warn {
+  color: var(--amber);
+}
+
+.ga4-note.bad {
+  color: var(--coral);
+}
+
+.ga4-section-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.ga4-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.ga4-filters select,
+.ga4-filters input {
+  width: 100%;
+}
+
+.ga4-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.ga4-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.ga4-panel-header h2 {
+  margin: 4px 0;
+}
+
+.ga4-panel-header p {
+  margin: 0;
+  max-width: 880px;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.ga4-panel h4 {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.ga4-kpi-grid,
+.ga4-funnel-grid,
+.ga4-env-grid,
+.ga4-bar-groups,
+.ga4-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+
+.ga4-chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+}
+
+.ga4-kpi-card,
+.ga4-funnel,
+.ga4-panel-block {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.ga4-kpi-card header,
+.ga4-funnel header,
+.ga4-panel-block header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ga4-kpi-card header i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--ga4-env);
+}
+
+.ga4-kpi-card header strong {
+  flex: 1;
+}
+
+.ga4-kpi-card dl,
+.ga4-funnel-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.ga4-kpi-card dt,
+.ga4-funnel-summary dt {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.ga4-kpi-card dd,
+.ga4-funnel-summary dd {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ga4-variation {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.ga4-variation.up::before {
+  content: "\2191 ";
+}
+
+.ga4-variation.down::before {
+  content: "\2193 ";
+}
+
+.ga4-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.ga4-table {
+  min-width: 640px;
+}
+
+.ga4-table.compact {
+  min-width: 480px;
+}
+
+.ga4-table.compact th,
+.ga4-table.compact td {
+  padding: 8px 10px;
+}
+
+.ga4-table tbody th {
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  white-space: normal;
+}
+
+.ga4-table tbody th small {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.ga4-export {
+  justify-self: start;
+}
+
+.ga4-bars {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ga4-bars li {
+  display: grid;
+  grid-template-columns: minmax(80px, 30%) minmax(0, 1fr) minmax(64px, auto);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.ga4-bar-label {
+  overflow: hidden;
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ga4-bar-track {
+  height: 10px;
+  border-radius: 4px;
+  background: rgba(190, 226, 215, 0.06);
+}
+
+.ga4-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+}
+
+.ga4-bar-value {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ga4-bar-value small {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.ga4-funnel-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.ga4-funnel-step {
+  display: grid;
+  grid-template-columns: 22px minmax(90px, 34%) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.ga4-funnel-index {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ga4-env);
+  color: var(--graphite-950);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ga4-funnel .ga4-bar-track {
+  height: 16px;
+}
+
+.ga4-chart {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.ga4-chart figcaption {
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ga4-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.ga4-chart-legend span,
+.ga4-tooltip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ga4-chart-legend i,
+.ga4-tooltip i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.ga4-chart-frame {
+  position: relative;
+}
+
+.ga4-chart-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ga4-grid line {
+  stroke: var(--border);
+}
+
+.ga4-grid text,
+.ga4-axis {
+  fill: var(--ink-muted);
+  font-size: 11px;
+}
+
+.ga4-crosshair {
+  stroke: var(--ink-muted);
+  stroke-dasharray: 3 3;
+}
+
+.ga4-point {
+  stroke: var(--ga4-surface);
+  stroke-width: 2;
+}
+
+.ga4-tooltip {
+  position: absolute;
+  top: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--graphite-900);
+  color: var(--ink);
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.ga4-details summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.ga4-details[open] summary {
+  margin-bottom: 10px;
+}
+
+.ga4-acquisition-table {
+  display: grid;
+}
+
+.ga4-source-list,
+.ga4-plain-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ga4-source-list li {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.ga4-source-list span {
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.ga4-steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.ga4-settings-form {
+  display: grid;
+  gap: 14px;
+}
+
+.ga4-settings-form .filter-field {
+  min-width: 0;
+}
+
+.ga4-settings-form textarea {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .ga4-filters .filter-field {
+    flex: 1 1 100%;
+  }
+
+  .ga4-kpi-card dd,
+  .ga4-funnel-summary dd {
+    font-size: 18px;
+  }
+
+  .ga4-funnel-step {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+  }
+
+  .ga4-funnel-step strong {
+    order: 1;
+  }
+
+  .ga4-funnel-step .ga4-bar-track {
+    order: 2;
+    grid-column: 2 / -1;
+  }
+}

@@ -10,6 +10,7 @@ import {
   BarChart3,
   Building2,
   Check,
+  Globe,
   ChevronsUpDown,
   LayoutDashboard,
   Menu,
@@ -50,6 +51,7 @@ const navigationIconById: Record<ClientNavigationId, LucideIcon> = {
   leads: UsersRound,
   crm: SquareKanban,
   reports: BarChart3,
+  analytics: Globe,
   events: Send,
   integrations: Plug,
   conversions: Route,
@@ -59,7 +61,7 @@ const navigationIconById: Record<ClientNavigationId, LucideIcon> = {
 const navigationGroupDefinitions = [
   {
     label: "Operação",
-    ids: ["overview", "leads", "crm", "reports", "events"],
+    ids: ["overview", "leads", "crm", "reports", "analytics", "events"],
   },
   {
     label: "Gestão",

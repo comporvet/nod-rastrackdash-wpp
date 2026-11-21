@@ -47,6 +47,7 @@ describe("navigation", () => {
       "leads",
       "crm",
       "reports",
+      "analytics",
       "events",
       "integrations",
       "conversions",

@@ -5,6 +5,7 @@ export const clientNavigation = [
   { id: "leads", label: "Leads" },
   { id: "crm", label: "CRM" },
   { id: "reports", label: "Relatórios" },
+  { id: "analytics", label: "Site e LPs" },
   { id: "events", label: "Eventos Meta" },
   { id: "integrations", label: "Integrações" },
   { id: "conversions", label: "Conversões" },

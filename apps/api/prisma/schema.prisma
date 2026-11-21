@@ -513,6 +513,7 @@ model Workspace {
   pipedriveConversionDedupes       PipedriveConversionDedupe[]
   opsAlertSettings                 WorkspaceOpsAlertSettings?
   opsAlertDeliveries               WorkspaceOpsAlertDelivery[]
+  googleAnalyticsConnection        GoogleAnalyticsConnection?
 
   @@index([asaasCustomerId])
   @@index([operationalStatus])
@@ -2894,4 +2895,28 @@ model MetaLeadSubmission {
 
   @@index([workspaceId, leadId, metaCreatedAt])
   @@index([workspaceId, createdAt])
+}
+
+/// GA4 (Data API e Admin API) por workspace, somente leitura. A chave JSON da
+/// conta de serviço fica cifrada com INBOUND_WEBHOOK_ENCRYPTION_KEY (AAD
+/// própria, amarrada ao workspace) e nunca volta para o painel.
+model GoogleAnalyticsConnection {
+  id                     String    @id @default(cuid())
+  workspaceId            String    @unique
+  propertyId             String
+  serviceAccountEmail    String
+  credentialEncrypted    String
+  credentialIv           String
+  credentialTag          String
+  /// [{ key, label, hostPattern, pathPattern? }]
+  environments           Json
+  expectedMeasurementIds String[]  @default([])
+  lastValidatedAt        DateTime?
+  lastErrorKind          String?
+  lastErrorMessage       String?
+  createdByUserId        String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
