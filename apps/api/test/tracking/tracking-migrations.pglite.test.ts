@@ -18,6 +18,7 @@ describe("tracking migration on PostgreSQL", () => {
       .sort();
     for (const name of names) await db.exec(sql(name));
     await db.exec(sql(migration));
+    await db.exec(sql("20261126130000_tracking_whatsapp_ref"));
 
     await db.exec(`INSERT INTO "Workspace" ("id", "name", "slug", "createdAt", "updatedAt")
       VALUES ('ws_1', 'Teste', 'teste', now(), now())`);
@@ -32,6 +33,18 @@ describe("tracking migration on PostgreSQL", () => {
       `SELECT "attribution" FROM "TrackingEvent" WHERE "id" = 'evt_1'`,
     );
     expect(rows).toEqual([{ attribution: {} }]);
+
+    const insertMatch = (id: string, message: string) =>
+      db.exec(`INSERT INTO "TrackingContactMatch" ("id", "workspaceId", "refToken", "trackingEventId",
+        "externalMessageId", "phoneHashes", "messageAt", "metaEventId", "updatedAt")
+        VALUES ('${id}', 'ws_1', 'CV-A7K9M2', 'evt_1', '${message}', ARRAY['h'], now(), 'rtd_lead_1', now())`);
+    await insertMatch("m_1", "wamid.1");
+    await expect(insertMatch("m_2", "wamid.2")).rejects.toThrow();
+    await db.exec(`DELETE FROM "TrackingEvent" WHERE "id" = 'evt_1'`);
+    const linked = await db.query<{ trackingEventId: string | null }>(
+      `SELECT "trackingEventId" FROM "TrackingContactMatch" WHERE "id" = 'm_1'`,
+    );
+    expect(linked.rows).toEqual([{ trackingEventId: null }]);
     await db.close();
   }, 60_000);
 });

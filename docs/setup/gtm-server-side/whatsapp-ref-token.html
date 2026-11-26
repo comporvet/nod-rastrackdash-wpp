@@ -1,0 +1,109 @@
+<script>
+/*
+ * RastrackDash - token de referência do WhatsApp (GTM Web, HTML personalizado).
+ * Acionador: Initialization - All Pages (ou Consent Initialization).
+ * Gera um token CV-XXXXXX por sessão do navegador e o acrescenta ao texto
+ * pré-preenchido de todo link do WhatsApp (wa.me, api.whatsapp.com e
+ * whatsapp://). Se o RastrackDash ou o sGTM estiverem fora, o link continua
+ * funcionando normalmente: só o token deixa de ser associado.
+ */
+(function () {
+  var STORAGE_KEY = 'rtd_ref';
+  var ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var DEFAULT_TEXT = 'Olá! Gostaria de informações sobre a consulta comportamental.';
+  var TOKEN_PATTERN = /\bCV-[A-HJ-NP-Z2-9]{6}\b/i;
+
+  function randomToken() {
+    var bytes = new Uint8Array(6);
+    var cryptoApi = window.crypto || window.msCrypto;
+    if (cryptoApi && cryptoApi.getRandomValues) {
+      cryptoApi.getRandomValues(bytes);
+    } else {
+      for (var j = 0; j < bytes.length; j++) bytes[j] = Math.floor(Math.random() * 256);
+    }
+    var out = 'CV-';
+    for (var i = 0; i < bytes.length; i++) out += ALPHABET.charAt(bytes[i] % ALPHABET.length);
+    return out;
+  }
+
+  function currentToken() {
+    var token = null;
+    try { token = window.sessionStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (!token || !/^CV-[A-HJ-NP-Z2-9]{6}$/.test(token)) {
+      token = randomToken();
+      try { window.sessionStorage.setItem(STORAGE_KEY, token); } catch (e) {}
+    }
+    window.__rtdRefToken = token;
+    return token;
+  }
+
+  function isWhatsappHref(href) {
+    return /^(https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)\/|whatsapp:\/\/)/i.test(href || '');
+  }
+
+  function withToken(href, token) {
+    var hashIndex = href.indexOf('#');
+    var hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+    var base = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+    var queryIndex = base.indexOf('?');
+    var path = queryIndex >= 0 ? base.slice(0, queryIndex) : base;
+    var query = queryIndex >= 0 ? base.slice(queryIndex + 1) : '';
+    var parts = query ? query.split('&') : [];
+    var text = null;
+    var kept = [];
+    for (var i = 0; i < parts.length; i++) {
+      var pair = parts[i];
+      if (pair.indexOf('text=') === 0) {
+        try { text = decodeURIComponent(pair.slice(5).replace(/\+/g, ' ')); } catch (e) { text = pair.slice(5); }
+      } else if (pair) {
+        kept.push(pair);
+      }
+    }
+    if (text && TOKEN_PATTERN.test(text)) return href;
+    var message = (text && text.replace(/\s+$/, '')) || DEFAULT_TEXT;
+    kept.push('text=' + encodeURIComponent(message + '\n\nRef.: ' + token));
+    return path + '?' + kept.join('&') + hash;
+  }
+
+  function tag(anchor) {
+    if (!anchor || !anchor.getAttribute) return;
+    var href = anchor.getAttribute('href');
+    if (!isWhatsappHref(href)) return;
+    var updated = withToken(href, currentToken());
+    if (updated !== href) anchor.setAttribute('href', updated);
+  }
+
+  function tagAll(root) {
+    var anchors = (root || document).querySelectorAll ? (root || document).querySelectorAll('a[href]') : [];
+    for (var i = 0; i < anchors.length; i++) tag(anchors[i]);
+  }
+
+  currentToken();
+
+  // Último momento antes da navegação: cobre links criados depois do carregamento.
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    while (node && node !== document) {
+      if (node.tagName && node.tagName.toLowerCase() === 'a') { tag(node); break; }
+      node = node.parentNode;
+    }
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { tagAll(document); });
+  } else {
+    tagAll(document);
+  }
+
+  if (window.MutationObserver) {
+    new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (added[j].nodeType === 1) { tag(added[j]); tagAll(added[j]); }
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+})();
+</script>

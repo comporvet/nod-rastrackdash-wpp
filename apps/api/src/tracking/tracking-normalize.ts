@@ -48,6 +48,9 @@ export type NormalizedTrackingEvent = {
   sessionId: string | null;
   modalidade: string | null;
   origem: string | null;
+  refToken: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
   attribution: Record<string, string>;
   consent: Record<string, string>;
   properties: Record<string, string | number | boolean>;
@@ -148,6 +151,9 @@ export function normalizeTrackingEvent(
     sessionId,
     modalidade: payload.modalidade ?? null,
     origem: payload.origem ?? null,
+    refToken: payload.ref_token ?? null,
+    ipAddress: payload.ip_address ?? null,
+    userAgent: payload.user_agent ?? null,
     attribution,
     consent,
     properties,

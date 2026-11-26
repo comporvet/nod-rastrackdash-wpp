@@ -5,6 +5,9 @@ export type TrackingConnectionState = {
     id: string;
     status: "active" | "paused";
     allowedEvents: string[];
+    metaLeadEnabled: boolean;
+    metaPixelId: string | null;
+    metaTestEventCode: string | null;
     lastReceivedAt: string | null;
     createdAt: string;
   } | null;
@@ -32,6 +35,18 @@ export type TrackingMonitor = {
     googleIdCoverage: number | null;
     metaIdCoverage: number | null;
   };
+  contacts: { status: string; count: number }[];
+  recentContacts: {
+    refToken: string;
+    messageAt: string;
+    status: string;
+    attempts: number;
+    lastError: string | null;
+    sentAt: string | null;
+    environment: string | null;
+    pagePath: string | null;
+    clickTime: string | null;
+  }[];
   recent: {
     eventName: string;
     environment: string;
@@ -56,6 +71,17 @@ export const rejectionLabels: Record<string, string> = {
   timestamp: "Horário fora da janela",
   event_not_allowed: "Evento não permitido",
   rate_limited: "Limite por minuto",
+};
+
+export const contactStatusLabels: Record<string, string> = {
+  pending: "Na fila",
+  retrying: "Tentando de novo",
+  sent: "Lead enviado",
+  failed: "Falhou",
+  skipped: "Não enviado",
+  disabled: "Envio desligado",
+  expired: "Expirado (mais de 7 dias)",
+  no_click: "Sem clique com este token",
 };
 
 export function environmentLabel(key: string): string {

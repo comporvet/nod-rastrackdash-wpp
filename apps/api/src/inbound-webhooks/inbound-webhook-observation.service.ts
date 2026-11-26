@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, Optional } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import type { InboundWebhookJobPayload } from "../common/queue/queue.constants";
 import {
@@ -10,6 +10,7 @@ import {
   ProviderConversionObservationService,
   type ProviderConversionObservationResult,
 } from "../conversion-rules/provider-conversion-observation.service";
+import { TrackingContactMatcherService } from "../tracking/tracking-contact-matcher.service";
 import { InboundWebhookChannelRoutesService } from "./inbound-webhook-channel-routes.service";
 import { InboundWebhookDiagnosticsService } from "./inbound-webhook-diagnostics.service";
 import { InboundWebhookPayloadEncryptionService } from "./inbound-webhook-payload-encryption.service";
@@ -156,6 +157,9 @@ export class InboundWebhookObservationService {
     private readonly providerConversions: ProviderConversionObservationService,
     @Inject(InboundWebhookProductionQueueService)
     private readonly productionQueue: InboundWebhookProductionQueueService,
+    @Optional()
+    @Inject(TrackingContactMatcherService)
+    private readonly trackingContacts?: TrackingContactMatcherService,
   ) {}
 
   async processDelivery(
@@ -300,6 +304,12 @@ export class InboundWebhookObservationService {
     );
 
     await this.recordDiagnostic(delivery, "processed", result);
+
+    // Official WhatsApp only: a message carrying a site click token (Ref.:
+    // CV-XXXXXX) links the phone to that click for the website Lead.
+    if (delivery.connection.provider === "meta_cloud" && this.trackingContacts) {
+      await this.trackingContacts.recordInboundMessages(delivery.workspaceId, result.events);
+    }
 
     return {
       deliveryId: delivery.id,

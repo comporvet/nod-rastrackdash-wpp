@@ -105,6 +105,9 @@ export class TrackingService {
             id: connection.id,
             status: connection.status,
             allowedEvents: connection.allowedEvents,
+            metaLeadEnabled: connection.metaLeadEnabled,
+            metaPixelId: connection.metaPixelId,
+            metaTestEventCode: connection.metaTestEventCode,
             lastReceivedAt: connection.lastReceivedAt?.toISOString() ?? null,
             createdAt: connection.createdAt.toISOString(),
           }
@@ -122,6 +125,11 @@ export class TrackingService {
       data: {
         ...(parsed.data.allowedEvents ? { allowedEvents: [...new Set(parsed.data.allowedEvents)] } : {}),
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
+        ...(parsed.data.metaLeadEnabled !== undefined ? { metaLeadEnabled: parsed.data.metaLeadEnabled } : {}),
+        ...(parsed.data.metaPixelId !== undefined ? { metaPixelId: parsed.data.metaPixelId || null } : {}),
+        ...(parsed.data.metaTestEventCode !== undefined
+          ? { metaTestEventCode: parsed.data.metaTestEventCode || null }
+          : {}),
       },
     });
     return this.getConnection(workspaceId);
@@ -141,7 +149,7 @@ export class TrackingService {
 
   async monitor(workspaceId: string, query: { since?: string; until?: string }) {
     const range = monitorRange(query.since, query.until);
-    const [connection, events, receipts, rejections, recent] = await Promise.all([
+    const [connection, events, receipts, rejections, recent, contacts, recentContacts] = await Promise.all([
       this.prisma.trackingIngestConnection.findUnique({ where: { workspaceId } }),
       this.prisma.trackingEvent.findMany({
         where: { workspaceId, eventTime: { gte: range.from, lt: range.to } },
@@ -181,6 +189,25 @@ export class TrackingService {
           _count: { select: { receipts: true } },
         },
       }),
+      this.prisma.trackingContactMatch.groupBy({
+        by: ["metaStatus"],
+        where: { workspaceId, messageAt: { gte: range.from, lt: range.to } },
+        _count: { _all: true },
+      }),
+      this.prisma.trackingContactMatch.findMany({
+        where: { workspaceId },
+        orderBy: { messageAt: "desc" },
+        take: 20,
+        select: {
+          refToken: true,
+          messageAt: true,
+          metaStatus: true,
+          attempts: true,
+          lastError: true,
+          sentAt: true,
+          trackingEvent: { select: { environment: true, pagePath: true, eventTime: true } },
+        },
+      }),
     ]);
     const latencies = receipts
       .map((receipt) => receipt.latencyMs)
@@ -201,6 +228,20 @@ export class TrackingService {
         .map((row) => ({ reason: row.reason, count: row._count._all }))
         .sort((a, b) => b.count - a.count),
       ...summarizeEvents(events),
+      contacts: contacts
+        .map((row) => ({ status: row.metaStatus, count: row._count._all }))
+        .sort((a, b) => b.count - a.count),
+      recentContacts: recentContacts.map((row) => ({
+        refToken: row.refToken,
+        messageAt: row.messageAt.toISOString(),
+        status: row.metaStatus,
+        attempts: row.attempts,
+        lastError: row.lastError,
+        sentAt: row.sentAt?.toISOString() ?? null,
+        environment: row.trackingEvent?.environment ?? null,
+        pagePath: row.trackingEvent?.pagePath ?? null,
+        clickTime: row.trackingEvent?.eventTime.toISOString() ?? null,
+      })),
       derivedKeys: events.filter((event) => event.dedupeConfidence === "derived").length,
       recent: recent.map((event) => ({
         eventName: event.eventName,

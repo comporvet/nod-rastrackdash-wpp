@@ -518,6 +518,7 @@ model Workspace {
   trackingEvents                   TrackingEvent[]
   trackingEventReceipts            TrackingEventReceipt[]
   trackingIngestRejections         TrackingIngestRejection[]
+  trackingContactMatches           TrackingContactMatch[]
 
   @@index([asaasCustomerId])
   @@index([operationalStatus])
@@ -2933,6 +2934,10 @@ model TrackingIngestConnection {
   allowedEvents  String[]  @default([])
   status         String    @default("active")
   lastReceivedAt DateTime?
+  /// Lead de site enviado à Meta quando o WhatsApp oficial recebe o token do clique.
+  metaLeadEnabled   Boolean @default(false)
+  metaPixelId       String?
+  metaTestEventCode String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -2959,14 +2964,19 @@ model TrackingEvent {
   sessionId        String?
   modalidade       String?
   origem           String?
+  refToken         String?
+  ipAddress        String?
+  userAgent        String?
   attribution      Json     @default("{}")
   consent          Json     @default("{}")
   properties       Json     @default("{}")
 
-  workspace Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  receipts  TrackingEventReceipt[]
+  workspace      Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  receipts       TrackingEventReceipt[]
+  contactMatches TrackingContactMatch[]
 
   @@unique([workspaceId, dedupeKey])
+  @@index([workspaceId, refToken])
   @@index([workspaceId, eventTime])
   @@index([workspaceId, environment, eventName, eventTime])
 }
@@ -2998,4 +3008,33 @@ model TrackingIngestRejection {
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, createdAt])
+}
+
+/// Mensagem do WhatsApp oficial com o token de um clique (outbox do Lead à Meta).
+model TrackingContactMatch {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  refToken          String
+  trackingEventId   String?
+  externalMessageId String
+  channelPhone      String?
+  phoneHashes       String[]
+  contactName       String?
+  messageAt         DateTime
+  metaStatus        String    @default("pending")
+  metaEventId       String
+  attempts          Int       @default(0)
+  nextAttemptAt     DateTime  @default(now())
+  lastError         String?
+  responseSummary   Json?
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  trackingEvent TrackingEvent? @relation(fields: [trackingEventId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, refToken])
+  @@unique([workspaceId, externalMessageId])
+  @@index([metaStatus, nextAttemptAt])
 }

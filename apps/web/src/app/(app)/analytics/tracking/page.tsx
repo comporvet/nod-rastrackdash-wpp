@@ -5,6 +5,7 @@ import { isApiRequestError, serverApiFetch } from "../../../../lib/server-api";
 import { updateTrackingConnection } from "./actions";
 import { TrackingTokenForm } from "./token-form";
 import {
+  contactStatusLabels,
   coverage,
   dateTime,
   environmentLabel,
@@ -207,6 +208,54 @@ export default async function TrackingMonitorPage({ searchParams }: { searchPara
 
           <section className="surface-panel ga4-panel">
             <header className="ga4-panel-header">
+              <span className="eyebrow">WhatsApp oficial</span>
+              <h2>Contatos ligados a um clique</h2>
+              <p>
+                Mensagens recebidas pela API oficial com o token Ref.: CV-XXXXXX do clique no site ou na LP. Cada token gera
+                no máximo um Lead de site na Meta.
+              </p>
+            </header>
+            {monitor.contacts.length ? (
+              <ul className="ga4-plain-list">
+                {monitor.contacts.map((row) => (
+                  <li key={row.status}>
+                    {contactStatusLabels[row.status] ?? row.status}: <strong>{integer(row.count)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="ga4-note">Nenhum contato com token no período.</p>
+            )}
+            {monitor.recentContacts.length ? (
+              <div className="table-wrap ga4-table-wrap">
+                <table className="ga4-table compact">
+                  <thead>
+                    <tr>
+                      <th scope="col">Mensagem</th>
+                      <th scope="col">Token</th>
+                      <th scope="col">Ambiente do clique</th>
+                      <th scope="col">Situação</th>
+                      <th scope="col">Detalhe</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monitor.recentContacts.map((row) => (
+                      <tr key={row.refToken}>
+                        <td>{dateTime(row.messageAt)}</td>
+                        <th scope="row">{row.refToken}</th>
+                        <td>{row.environment ? `${environmentLabel(row.environment)} ${row.pagePath ?? ""}` : "—"}</td>
+                        <td>{contactStatusLabels[row.status] ?? row.status}</td>
+                        <td>{row.status === "sent" ? dateTime(row.sentAt) : row.lastError ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="surface-panel ga4-panel">
+            <header className="ga4-panel-header">
               <span className="eyebrow">Últimos eventos</span>
               <h2>Chegadas mais recentes</h2>
             </header>
@@ -268,6 +317,25 @@ export default async function TrackingMonitorPage({ searchParams }: { searchPara
               <label className="filter-field">
                 <span>Eventos permitidos (os demais são ignorados)</span>
                 <input name="allowedEvents" defaultValue={connection.connection.allowedEvents.join(", ")} />
+              </label>
+              <label className="filter-field">
+                <span>
+                  <input type="checkbox" name="metaLeadEnabled" defaultChecked={connection.connection.metaLeadEnabled} />{" "}
+                  Enviar Lead de site à Meta quando o WhatsApp oficial receber o token do clique
+                </span>
+              </label>
+              <label className="filter-field">
+                <span>Pixel / conjunto de dados da Meta (vazio = o da conexão Meta)</span>
+                <input
+                  name="metaPixelId"
+                  inputMode="numeric"
+                  placeholder="1075406568726436"
+                  defaultValue={connection.connection.metaPixelId ?? ""}
+                />
+              </label>
+              <label className="filter-field">
+                <span>Código de teste da Meta (só para teste controlado; deixe vazio em produção)</span>
+                <input name="metaTestEventCode" defaultValue={connection.connection.metaTestEventCode ?? ""} />
               </label>
               <label className="filter-field">
                 <span>Situação</span>

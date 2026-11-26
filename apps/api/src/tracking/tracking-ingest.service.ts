@@ -240,6 +240,9 @@ export class TrackingIngestService {
       "sessionId",
       "modalidade",
       "origem",
+      "refToken",
+      "ipAddress",
+      "userAgent",
     ] as const) {
       if (stored[key] == null && incoming[key] != null) fill[key] = incoming[key];
     }

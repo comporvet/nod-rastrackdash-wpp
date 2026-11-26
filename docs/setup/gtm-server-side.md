@@ -60,6 +60,78 @@ Com o Preview ligado:
 
 Publicar o contêiner é uma decisão sua. Antes de publicar, confira que as tags 00 a 03 continuam como estavam.
 
+## 5. Token do WhatsApp e Lead de site na Meta (Advanced Matching)
+
+Sem formulário, o primeiro dado pessoal do visitante é o telefone que chega no WhatsApp. A ponte liga esse telefone ao clique no site ou na LP e envia à Meta um **Lead** de site com telefone (hash), fbp, fbc, IP e user agent do clique.
+
+```text
+Clique no WhatsApp (site/LP) -> mensagem pré-preenchida com "Ref.: CV-XXXXXX"
+  -> GA4 click_whatsapp com ref_token -> sGTM -> RastrackDash (guarda o clique)
+  -> visitante envia a mensagem -> API oficial do WhatsApp -> RastrackDash
+  -> liga telefone ao clique -> Lead (action_source website) -> Meta CAPI
+```
+
+Requisito: os números da Comporvet conectados no RastrackDash como **WhatsApp API oficial (Meta Cloud)** em Integrações, com o app inscrito na WABA. Mensagens da UAZAPI não entram nesta ponte.
+
+### 5.1 GTM Web (contêineres do site e das LPs)
+
+Faça em cada contêiner Web (`GTM-MHMF75GT` e `GTM-ND8M6BWC`), num workspace novo:
+
+1. **Tags → Nova → HTML personalizado**, nome `05 - [RASTRACKDASH] Token WhatsApp`, com o conteúdo de [`gtm-server-side/whatsapp-ref-token.html`](gtm-server-side/whatsapp-ref-token.html). Acionador **Initialization - All Pages**.
+   - O texto padrão (quando o link não tem `text=`) fica na constante `DEFAULT_TEXT` do código; ajuste por contêiner se quiser.
+2. **Variáveis → Nova → JavaScript personalizado**, nome `JS - RastrackDash Ref`:
+
+   ```js
+   function () {
+     try { return window.__rtdRefToken || sessionStorage.getItem('rtd_ref') || undefined; }
+     catch (e) { return undefined; }
+   }
+   ```
+
+3. Na tag GA4 do evento `click_whatsapp`, adicione o parâmetro de evento `ref_token` = `{{JS - RastrackDash Ref}}`. Opcional: o mesmo parâmetro na tag do Google (configuração), para que o page_view também o carregue.
+4. No Preview, clique no botão do WhatsApp: o link aberto deve terminar com `Ref.: CV-XXXXXX` e o evento `click_whatsapp` deve mostrar o parâmetro `ref_token` com o mesmo valor.
+
+Limitações: se o visitante apagar a linha `Ref.:` antes de enviar, ou abrir o WhatsApp por outro caminho (copiando o número), não há ligação. O token é por sessão do navegador: vários cliques na mesma sessão usam o mesmo token, e só a primeira mensagem com ele gera Lead.
+
+### 5.2 GTM Server-Side
+
+Reimporte o modelo [`gtm-server-side/rastrackdash-tag.tpl`](gtm-server-side/rastrackdash-tag.tpl) (ou atualize o código e as permissões do modelo existente). A versão atual também envia `ref_token`, `ip_override` (IP do visitante) e `user_agent` do Event Data. O acionador e a tag não mudam.
+
+### 5.3 RastrackDash
+
+Em **Tracking Monitor → Configuração**:
+
+- marque **Enviar Lead de site à Meta**;
+- informe o pixel/conjunto de dados `1075406568726436` (vazio usa o pixel da conexão Meta do workspace). O token de acesso é o da conexão Meta já configurada;
+- para o teste, preencha o **código de teste** do Gerenciador de Eventos e apague-o depois.
+
+### 5.4 O que vai para a Meta
+
+| Campo | Valor |
+|---|---|
+| `event_name` | `Lead` |
+| `action_source` | `website` |
+| `event_time` | horário da mensagem no WhatsApp |
+| `event_id` | fixo por token (`rtd_lead_...`), então reenvios são deduplicados |
+| `event_source_url` | página do clique (só UTMs e identificadores de clique na query) |
+| `user_data.ph` | SHA-256 do telefone, com e sem o nono dígito |
+| `user_data.fn` | SHA-256 do primeiro nome do perfil do WhatsApp, quando houver |
+| `user_data.fbp` / `fbc` | cookies do clique; `fbc` montado do `fbclid` real quando não houver cookie |
+| `user_data.client_ip_address` / `client_user_agent` | do clique, recebidos pelo sGTM |
+| `user_data.external_id` | SHA-256 do client_id do GA4 |
+| `custom_data` | `lead_source=whatsapp`, ambiente, modalidade/origem |
+
+Situações no monitor: **Na fila**, **Tentando de novo** (erro temporário, até 6 tentativas), **Lead enviado**, **Falhou** (recusa da Meta, com a mensagem), **Envio desligado**, **Expirado** (mensagem com mais de 7 dias), **Sem clique com este token** (após 15 minutos sem o clique chegar), **Não enviado** (clique sem user agent).
+
+O Lead é separado do `Contact` (o clique): não altera as conversões personalizadas `[LP][ONLINE]`, `[LP][PRESENCIAL]` e `[SITE] - Contato WhatsApp`.
+
+### 5.5 Teste controlado
+
+1. Com o código de teste preenchido, abra a LP Online em aba anônima, clique no WhatsApp e envie a mensagem sem apagar o `Ref.:`, de um número que não seja o da Comporvet.
+2. No Tracking Monitor, em **Contatos ligados a um clique**, o token deve aparecer como **Lead enviado** em até 2 minutos.
+3. No Gerenciador de Eventos → Eventos de teste, o Lead deve aparecer com telefone, fbp, IP e user agent.
+4. Apague o código de teste e salve.
+
 ## O que é gravado
 
 | Campo | Origem | Observação |
@@ -73,7 +145,7 @@ Publicar o contêiner é uma decisão sua. Antes de publicar, confira que as tag
 | Consentimento | `x-ga-gcs` | `ad_storage` e `analytics_storage`; o resto fica `unknown` |
 | Rolagem e link | `percent_scrolled`, `link_url`, `link_domain`, `outbound` | `link_url` sem query (a mensagem do wa.me não é gravada) |
 
-Não são gravados IP, user agent, telefone, e-mail nem o texto da mensagem do WhatsApp.
+Também são gravados o token `ref_token`, o IP (`ip_override`) e o user agent do visitante, usados no Lead de site (seção 5). O telefone só é guardado como hash, na ligação com a mensagem; o texto da mensagem não é gravado.
 
 ## Segurança
 

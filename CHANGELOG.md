@@ -7,7 +7,7 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
-Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Two new migrations (`20261121120000_google_analytics_connection` and `20261126120000_tracking_server_ingest`, both additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Three new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest` and `20261126130000_tracking_whatsapp_ref`, all additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
 
 ### Added
 
@@ -26,6 +26,13 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   receipts, duplicates, rejections, latency, events per environment and
   identifier coverage. Server tag template and guide:
   [`docs/setup/gtm-server-side.md`](docs/setup/gtm-server-side.md).
+- **WhatsApp click token and website Lead**: a GTM Web tag adds
+  `Ref.: CV-XXXXXX` to every WhatsApp link and sends it as `ref_token`; the
+  sGTM tag also forwards IP and user agent. Official WhatsApp (`meta_cloud`)
+  messages carrying the token are linked to the click
+  (`TrackingContactMatch`, one per token) and an outbox worker sends a Meta
+  CAPI `Lead` with `action_source: website`, hashed phone, fbp, fbc, IP and
+  user agent. Off by default per workspace (Tracking Monitor settings).
 
 ## [1.3.3] - 2026-11-03
 

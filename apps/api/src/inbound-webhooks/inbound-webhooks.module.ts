@@ -43,6 +43,7 @@ import { BackofficeIntegrationEventsController } from "./backoffice-integration-
 import { BackofficeParserReleasesController } from "./backoffice-parser-releases.controller";
 import { BackofficeIntegrationEventsService } from "./backoffice-integration-events.service";
 import { WhatsappProvidersModule } from "../integrations/whatsapp-providers/whatsapp-providers.module";
+import { TrackingAttributionModule } from "../tracking/tracking-attribution.module";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { WhatsappProvidersModule } from "../integrations/whatsapp-providers/what
     RuntimeModule,
     ConversionRulesModule,
     WorkspacesModule,
+    TrackingAttributionModule,
     forwardRef(() => WhatsappProvidersModule),
     BullModule.registerQueue({
       name: INBOUND_WEBHOOK_QUEUE,

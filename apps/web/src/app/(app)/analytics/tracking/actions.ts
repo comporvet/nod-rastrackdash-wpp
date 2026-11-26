@@ -39,6 +39,9 @@ export async function updateTrackingConnection(formData: FormData) {
       body: JSON.stringify({
         allowedEvents,
         status: formData.get("status") === "paused" ? "paused" : "active",
+        metaLeadEnabled: formData.get("metaLeadEnabled") === "on",
+        metaPixelId: String(formData.get("metaPixelId") ?? "").trim(),
+        metaTestEventCode: String(formData.get("metaTestEventCode") ?? "").trim(),
       }),
     });
   } catch (error) {
