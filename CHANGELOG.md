@@ -7,7 +7,7 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
-Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **One new migration (`20261121120000_google_analytics_connection`, additive) and no new variable.**
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Two new migrations (`20261121120000_google_analytics_connection` and `20261126120000_tracking_server_ingest`, both additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
 
 ### Added
 
@@ -16,6 +16,16 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   read-only through the Google Analytics Data API with a service account.
   Configuration and discovery in `/analytics/settings`. Guide:
   [`docs/setup/google-analytics.md`](docs/setup/google-analytics.md).
+- **Tracking Monitor** (`/analytics/tracking`): server-to-server ingestion of
+  GTM Server-Side events (`POST /tracking/server/v1/events`, bearer token
+  stored as SHA-256, 5-minute timestamp window, 32 KB limit, per-connection
+  rate limit). Each interaction becomes one canonical `TrackingEvent`
+  (dedupe by `event_id`, or a flagged derived key) with technical
+  `TrackingEventReceipt` rows, environment classified with the GA4 rules,
+  page URL reduced to allowlisted attribution parameters. The screen shows
+  receipts, duplicates, rejections, latency, events per environment and
+  identifier coverage. Server tag template and guide:
+  [`docs/setup/gtm-server-side.md`](docs/setup/gtm-server-side.md).
 
 ## [1.3.3] - 2026-11-03
 

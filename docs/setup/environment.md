@@ -467,6 +467,17 @@ depois de mudar.
   `META_INSIGHTS_PAGE_LIMIT=100`, `META_INSIGHTS_LEVEL_MODE=legacy` e
   `META_CAPI_BATCH_ENABLED=false`.
 
+### Recepção do GTM Server-Side (opcional)
+
+`TRACKING_INGEST_ENABLED` liga a rota `POST /tracking/server/v1/events`, que recebe do contêiner GTM Server-Side uma cópia dos eventos monitorados (tela **Site e LPs → Tracking Monitor**).
+
+- Padrão `false`: a rota responde 404 e nada é gravado.
+- `true`: a rota aceita requisições com o ID da conexão e o token gerados na tela. O token fica só como hash SHA-256 no banco e é exibido uma única vez.
+- Não há segredo novo no `.env`: o token vive no banco (hash) e na variável constante do contêiner de servidor.
+- Usa `API_PUBLIC_URL` para mostrar o endereço completo na tela.
+
+Guia: [`gtm-server-side.md`](gtm-server-side.md).
+
 ## URLs, cookie e primeiro administrador
 
 Use estes valores de formato (exemplos sem segredos):

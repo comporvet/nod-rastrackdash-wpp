@@ -39,6 +39,14 @@ export function configureInboundWebhookBodyParser(
     }),
   );
   app.use(
+    "/tracking/server",
+    raw({
+      type: (request: { method?: string }) => request.method === "POST",
+      limit: "32kb",
+      verify: captureRawBody,
+    }),
+  );
+  app.use(
     "/webhooks/kommo",
     raw({
       type: (request: { method?: string }) => request.method === "POST",

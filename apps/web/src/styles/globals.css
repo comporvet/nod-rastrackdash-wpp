@@ -17723,3 +17723,42 @@ button.meta-manual-entry[aria-expanded="true"] {
   font-size: 11px;
   white-space: pre;
 }
+
+.tracking-kpis dl,
+.tracking-quality {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.tracking-quality dt,
+.tracking-kpis small,
+.tracking-quality small {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.tracking-quality dd {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.tracking-token {
+  display: grid;
+  gap: 8px;
+}
+
+.tracking-token code {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .tracking-kpis dl,
+  .tracking-quality {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

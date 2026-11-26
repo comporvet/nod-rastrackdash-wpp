@@ -514,6 +514,10 @@ model Workspace {
   opsAlertSettings                 WorkspaceOpsAlertSettings?
   opsAlertDeliveries               WorkspaceOpsAlertDelivery[]
   googleAnalyticsConnection        GoogleAnalyticsConnection?
+  trackingIngestConnection         TrackingIngestConnection?
+  trackingEvents                   TrackingEvent[]
+  trackingEventReceipts            TrackingEventReceipt[]
+  trackingIngestRejections         TrackingIngestRejection[]
 
   @@index([asaasCustomerId])
   @@index([operationalStatus])
@@ -2919,4 +2923,79 @@ model GoogleAnalyticsConnection {
   updatedAt              DateTime  @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+/// Recepção de eventos do GTM Server-Side (uma conexão por workspace).
+model TrackingIngestConnection {
+  id             String    @id @default(cuid())
+  workspaceId    String    @unique
+  secretHash     String
+  allowedEvents  String[]  @default([])
+  status         String    @default("active")
+  lastReceivedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+/// Interação única do visitante; recebimentos repetidos viram recibos.
+model TrackingEvent {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  schemaVersion    String
+  eventName        String
+  eventId          String?
+  dedupeKey        String
+  dedupeConfidence String
+  eventTime        DateTime
+  firstReceivedAt  DateTime @default(now())
+  environment      String
+  hostname         String?
+  pagePath         String?
+  pageLocation     String?
+  pageReferrerHost String?
+  clientId         String?
+  sessionId        String?
+  modalidade       String?
+  origem           String?
+  attribution      Json     @default("{}")
+  consent          Json     @default("{}")
+  properties       Json     @default("{}")
+
+  workspace Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  receipts  TrackingEventReceipt[]
+
+  @@unique([workspaceId, dedupeKey])
+  @@index([workspaceId, eventTime])
+  @@index([workspaceId, environment, eventName, eventTime])
+}
+
+model TrackingEventReceipt {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  trackingEventId String
+  transportSource String
+  receiptKey      String
+  receivedAt      DateTime @default(now())
+  latencyMs       Int?
+  duplicate       Boolean  @default(false)
+
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  trackingEvent TrackingEvent @relation(fields: [trackingEventId], references: [id], onDelete: Cascade)
+
+  @@unique([trackingEventId, transportSource, receiptKey])
+  @@index([workspaceId, receivedAt])
+}
+
+model TrackingIngestRejection {
+  id          String   @id @default(cuid())
+  workspaceId String?
+  reason      String
+  eventName   String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
 }

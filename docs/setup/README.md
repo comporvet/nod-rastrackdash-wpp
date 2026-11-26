@@ -39,6 +39,8 @@ Os dois caminhos de instalação convergem nos mesmos passos de produto: licenç
 
 Google Analytics 4 do site e das landing pages (tela **Site e LPs**, opcional): [`google-analytics.md`](google-analytics.md).
 
+Recepção dos eventos do GTM Server-Side (tela **Tracking Monitor**, opcional): [`gtm-server-side.md`](gtm-server-side.md).
+
 Algo deu errado em qualquer passo? Vá direto para [`troubleshooting.md`](troubleshooting.md).
 
 ## Checklist in-app

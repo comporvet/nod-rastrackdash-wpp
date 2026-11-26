@@ -30,6 +30,7 @@ import { OpsAlertsModule } from "./ops-alerts/ops-alerts.module";
 import { KommoModule } from "./kommo/kommo.module";
 import { PipedriveModule } from "./pipedrive/pipedrive.module";
 import { GoogleAnalyticsModule } from "./google-analytics/google-analytics.module";
+import { TrackingModule } from "./tracking/tracking.module";
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { GoogleAnalyticsModule } from "./google-analytics/google-analytics.modul
     KommoModule,
     PipedriveModule,
     GoogleAnalyticsModule,
+    TrackingModule,
   ],
   controllers: [HealthController],
   providers: [
