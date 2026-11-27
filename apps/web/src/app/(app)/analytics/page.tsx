@@ -529,6 +529,9 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
               Atualizar agora
             </Link>
           ) : null}
+          <Link className="button ghost" href="/analytics/origins">
+            Origem dos leads
+          </Link>
           <Link className="button ghost" href="/analytics/tracking">
             Tracking Monitor
           </Link>

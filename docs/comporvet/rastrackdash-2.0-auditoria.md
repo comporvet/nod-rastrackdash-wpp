@@ -63,7 +63,7 @@ Decisões:
 
 | Fase | Conteúdo | Depende de | Impacto no núcleo PalmUP |
 |---|---|---|---|
-| 3 — Atribuição | Feito: token `CV-XXXXXX` e Lead de site pela API oficial. Falta: first touch, last touch e touchpoints a partir de `TrackingEvent`; criar o lead do CRM para conversas sem `ctwa_clid` | Decisão sobre o texto pré-preenchido; caminho de lead sem `ctwa_clid` | **Alto**: criação de lead nos receptores de webhook |
+| 3 — Atribuição | Feito: código `_Atendimento: CV-XXXXXX_`, Lead de site pela API oficial e tela Origem dos leads (pago Google/Meta × orgânico, primeiro contato por `client_id` em 90 dias, último clique não direto). Falta: criar o lead do CRM para conversas sem `ctwa_clid` e levar a origem aos relatórios de Visão geral | Decisão sobre o texto pré-preenchido; caminho de lead sem `ctwa_clid` | **Alto**: criação de lead nos receptores de webhook |
 | 4 — APIs de marketing | Google Ads API (campanhas, custos, conversões), sincronização incremental | Customer ID confirmado pela API, developer token, OAuth | Baixo (módulo próprio) |
 | 5 — Funil comercial | Entidades de consulta (agendada, paga, realizada, cancelada, no-show, reembolsada); webhooks do n8n | Fonte do agendamento e da realização (IVet? SimplesVet?) | Médio |
 | 6 — Conversões | Data Manager API (offline e Enhanced Conversions for Leads); Meta CAPI comercial (`Schedule`, `Purchase` por consulta) com outbox | Acesso à Data Manager API, ações `[COMPORVET][OFFLINE]`, WABA ID se houver CAPI de mensagens | Médio: catálogo de eventos compartilhado |

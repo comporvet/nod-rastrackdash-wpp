@@ -19,6 +19,7 @@ describe("tracking migration on PostgreSQL", () => {
     for (const name of names) await db.exec(sql(name));
     await db.exec(sql(migration));
     await db.exec(sql("20261126130000_tracking_whatsapp_ref"));
+    await db.exec(sql("20261127120000_tracking_client_index"));
 
     await db.exec(`INSERT INTO "Workspace" ("id", "name", "slug", "createdAt", "updatedAt")
       VALUES ('ws_1', 'Teste', 'teste', now(), now())`);
@@ -45,6 +46,11 @@ describe("tracking migration on PostgreSQL", () => {
       `SELECT "trackingEventId" FROM "TrackingContactMatch" WHERE "id" = 'm_1'`,
     );
     expect(linked.rows).toEqual([{ trackingEventId: null }]);
+
+    const index = await db.query<{ indexname: string }>(
+      `SELECT indexname FROM pg_indexes WHERE indexname = 'TrackingEvent_workspaceId_clientId_eventTime_idx'`,
+    );
+    expect(index.rows).toHaveLength(1);
     await db.close();
   }, 60_000);
 });

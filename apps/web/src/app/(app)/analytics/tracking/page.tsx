@@ -78,6 +78,9 @@ export default async function TrackingMonitorPage({ searchParams }: { searchPara
           </p>
         </div>
         <div className="header-actions">
+          <Link className="button ghost" href="/analytics/origins">
+            Origem dos leads
+          </Link>
           <Link className="button ghost" href="/analytics">
             Voltar para Site e LPs
           </Link>

@@ -146,6 +146,37 @@ O Lead de site leva `external_id` = SHA-256 (hex) do `client_id` do GA4. Se as t
 
 Não muda o `event_id` nem a deduplicação Pixel/CAPI.
 
+## 7. Origem dos leads (pago × orgânico)
+
+Tela **Site e LPs → Origem dos leads** (`/analytics/origins`). Cada lead do período é classificado como **pago** (Google Ads ou Meta Ads) ou **orgânico**:
+
+| Lead | Como a origem é definida |
+|---|---|
+| Contato do site/LP (código *Atendimento*) | Primeiro contato do mesmo navegador (`client_id`) nos 90 dias antes da mensagem. Cada sessão (`session_id`) é classificada pela URL de entrada e pelo site de origem |
+| Anúncio Click-to-WhatsApp | Meta Ads (pelo `ctwa_clid`), com a campanha do lead |
+| WhatsApp direto (sem código e sem anúncio) | Orgânico, contado na primeira mensagem do número registrada no RastrackDash |
+
+Regras de cada sessão, em ordem (a primeira que bater vale):
+
+1. Site de origem Tag Assistant ou Gerenciador de Eventos: sessão de teste, ignorada.
+2. `gclid`, `gbraid`, `wbraid` ou `dclid`: **Google Ads**.
+3. `utm_medium` pago (`cpc`, `ppc`, `paid…`, `display`, `cpm`, `ads`) com `utm_source` Google/YouTube: **Google Ads**; com Facebook/Instagram/`fb`/`ig`/Meta: **Meta Ads**.
+4. `fbclid` sem UTM paga: **Meta Ads (provável)**. A Meta acrescenta `fbclid` também em cliques de posts orgânicos.
+5. Buscador (Google, Bing etc.) sem identificador de clique: busca orgânica.
+6. Rede social (Facebook, Instagram, X, LinkedIn, YouTube, TikTok, Pinterest) ou `utm_medium` social: social orgânico.
+7. Outra UTM (e-mail, bio etc.): outras origens.
+8. Outro site: referência. Navegação entre `comporvet.com.br` e `consultas.comporvet.com.br` não conta como origem.
+9. Nada disso: direto.
+
+Os cookies `fbp`/`fbc` não entram na classificação: o `fbc` dura 90 dias e faria uma volta direta parecer anúncio. A tela também mostra o **último clique não direto** e o número de visitas antes do contato.
+
+Para deixar a classificação precisa:
+
+- **Meta Ads** que levam ao site/LP: em cada anúncio, **Parâmetros de URL** = `utm_source={{site_source_name}}&utm_medium=paid_social&utm_campaign={{campaign.name}}&utm_id={{campaign.id}}&utm_content={{ad.id}}`. Com isso a Meta passa de "provável" para confirmada e a campanha aparece na tela.
+- **Google Ads**: confirme **Marcação automática** ligada (Administrador → Configurações da conta), que gera o `gclid`. Para ver a campanha na tela, acrescente no **Sufixo do URL final** da conta: `utm_source=google&utm_medium=cpc&utm_campaign={campaignid}`.
+
+Limitações: a origem vale por navegador (outro aparelho, outro navegador ou cookies apagados perdem o histórico); visitas anteriores a 26/11/2026 não foram coletadas; o WhatsApp direto inclui clientes antigos que escrevem pela primeira vez desde a conexão da API oficial (05/11/2026).
+
 ## O que é gravado
 
 | Campo | Origem | Observação |

@@ -2,6 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Inject, Post, Put, Query } f
 import { AuthToken } from "../auth/auth-user.decorator";
 import { AuthService } from "../auth/auth.service";
 import { WorkspacesService } from "../workspaces/workspaces.service";
+import { LeadOriginService } from "./lead-origin.service";
 import { TrackingService } from "./tracking.service";
 
 function single(value: string | string[] | undefined): string | undefined {
@@ -12,6 +13,7 @@ function single(value: string | string[] | undefined): string | undefined {
 export class TrackingController {
   constructor(
     @Inject(TrackingService) private readonly tracking: TrackingService,
+    @Inject(LeadOriginService) private readonly origins: LeadOriginService,
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(WorkspacesService) private readonly workspaces: WorkspacesService,
   ) {}
@@ -42,6 +44,16 @@ export class TrackingController {
   ) {
     const workspaceId = await this.workspaceId(token, "canViewReports");
     return this.tracking.monitor(workspaceId, { since: single(since), until: single(until) });
+  }
+
+  @Get("lead-origins")
+  async leadOrigins(
+    @AuthToken() token: string,
+    @Query("since") since?: string | string[],
+    @Query("until") until?: string | string[],
+  ) {
+    const workspaceId = await this.workspaceId(token, "canViewReports");
+    return this.origins.report(workspaceId, { since: single(since), until: single(until) });
   }
 
   private async workspaceId(token: string, permission: "canManageIntegrations" | "canViewReports") {

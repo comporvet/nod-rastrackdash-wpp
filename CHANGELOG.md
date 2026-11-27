@@ -7,7 +7,7 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
-Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Three new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest` and `20261126130000_tracking_whatsapp_ref`, all additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Four new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest`, `20261126130000_tracking_whatsapp_ref` and `20261127120000_tracking_client_index`, all additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
 
 ### Added
 
@@ -33,6 +33,12 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   (`TrackingContactMatch`, one per token) and an outbox worker sends a Meta
   CAPI `Lead` with `action_source: website`, hashed phone, fbp, fbc, IP and
   user agent. Off by default per workspace (Tracking Monitor settings).
+- **Origem dos leads** (`/analytics/origins`, `GET /tracking/lead-origins`):
+  each lead is classified as paid (Google Ads, Meta Ads) or organic. Site/LP
+  contacts take the first touch of the same browser (`client_id`, one touch
+  per `session_id`) within 90 days; CTWA leads are Meta Ads; official
+  WhatsApp contacts with no code and no ad are organic. Computed at read
+  time; one new index on `TrackingEvent(workspaceId, clientId, eventTime)`.
 
 ## [1.3.3] - 2026-11-03
 

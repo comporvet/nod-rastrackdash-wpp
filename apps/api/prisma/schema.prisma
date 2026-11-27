@@ -2977,6 +2977,7 @@ model TrackingEvent {
 
   @@unique([workspaceId, dedupeKey])
   @@index([workspaceId, refToken])
+  @@index([workspaceId, clientId, eventTime])
   @@index([workspaceId, eventTime])
   @@index([workspaceId, environment, eventName, eventTime])
 }
