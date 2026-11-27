@@ -1021,6 +1021,11 @@ export default async function OverviewPage({
                 />
               ) : null}
 
+              <AcquisitionFunnel
+                data={acquisitionFunnel.data}
+                error={acquisitionFunnel.error}
+              />
+
               <div className="metric-grid overview-primary-metrics">
                 <Metric
                   label="Investimento"
@@ -1153,11 +1158,6 @@ export default async function OverviewPage({
                 available={dataAvailable}
                 items={leadsBlockItems}
                 rangeLabel={report.rangeLabel}
-              />
-
-              <AcquisitionFunnel
-                data={acquisitionFunnel.data}
-                error={acquisitionFunnel.error}
               />
 
               <section
