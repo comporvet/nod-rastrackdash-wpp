@@ -65,6 +65,7 @@ type Bucket = {
   spendCents: number;
   impressions: number;
   clicks: number;
+  linkClicks: number;
   actionValues: Record<string, number>;
 };
 
@@ -72,6 +73,7 @@ function addRow(bucket: Bucket, row: MetaAdInsightRow): void {
   bucket.spendCents += row.spendCents;
   bucket.impressions += row.impressions;
   bucket.clicks += row.clicks;
+  bucket.linkClicks += row.linkClicks;
 
   for (const [type, value] of Object.entries(row.actionValues)) {
     bucket.actionValues[type] = (bucket.actionValues[type] ?? 0) + value;
@@ -79,7 +81,7 @@ function addRow(bucket: Bucket, row: MetaAdInsightRow): void {
 }
 
 function emptyBucket(): Bucket {
-  return { spendCents: 0, impressions: 0, clicks: 0, actionValues: {} };
+  return { spendCents: 0, impressions: 0, clicks: 0, linkClicks: 0, actionValues: {} };
 }
 
 function groupRows<TKey>(
@@ -109,6 +111,7 @@ function metrics(bucket: Bucket, readMode: MetaInsightReadMode) {
     spendCents: bucket.spendCents,
     impressions: bucket.impressions,
     clicks: bucket.clicks,
+    linkClicks: bucket.linkClicks,
     metaConversationsStarted: conversationsFromActionValues(
       bucket.actionValues,
       readMode,

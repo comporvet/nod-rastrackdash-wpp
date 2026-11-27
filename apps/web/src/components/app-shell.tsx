@@ -38,6 +38,7 @@ import {
   PresentationModeToggle,
   usePresentationMode,
 } from "./presentation-mode-toggle";
+import { ThemeToggle } from "./theme-toggle";
 import { exitPlatformSupportAccess } from "../app/actions/platform-support";
 import { switchActiveWorkspace } from "../app/actions/workspaces";
 import { defaultBrandConfig, type BrandConfig } from "../lib/brand";
@@ -273,6 +274,7 @@ export function AppShell({
             <strong>{brand.name}</strong>
           </span>
         </Link>
+        <ThemeToggle compact />
         <button
           className="mobile-menu-toggle"
           type="button"
@@ -525,6 +527,9 @@ export function AppShell({
         onClick={closeMobileMenu}
       />
       <main className="content">
+        <div className="content-topbar">
+          <ThemeToggle />
+        </div>
         {workspace?.accessMode === "platform_support" ? (
           <div className="support-context-bar" role="status">
             <div>

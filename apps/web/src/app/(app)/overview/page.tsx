@@ -18,6 +18,8 @@ import {
   ExchangeRateMissingNote,
 } from "../../../components/currency-kpi-groups";
 import { MetaSyncCoverageNotice } from "../../../components/meta-sync-coverage-notice";
+import { AcquisitionFunnel } from "./acquisition-funnel";
+import { FUNNEL_PARAM, isFunnelData, type AcquisitionFunnelData } from "./acquisition-funnel-model";
 import { PresentationMask } from "../../../components/presentation-mask";
 import {
   joinAdAccountIds,
@@ -214,6 +216,27 @@ async function getWhatsappInstances(): Promise<WhatsappNumberOption[]> {
     );
   } catch {
     return [];
+  }
+}
+
+async function getAcquisitionFunnel(
+  filters: OverviewFiltersInput,
+  funnel: { group?: string; channel?: string; entry?: string },
+): Promise<{ data: AcquisitionFunnelData | null; error: string | null }> {
+  const params = new URLSearchParams();
+  if (filters.since && filters.until) {
+    params.set("since", filters.since);
+    params.set("until", filters.until);
+  }
+  if (funnel.group) params.set("group", funnel.group);
+  if (funnel.channel) params.set("channel", funnel.channel);
+  if (funnel.entry) params.set("entry", funnel.entry);
+  if (filters.campaignIds.length) params.set("campaignIds", filters.campaignIds.join(","));
+  try {
+    const data = await serverApiFetch<unknown>(`/tracking/acquisition-funnel?${params.toString()}`);
+    return isFunnelData(data) ? { data, error: null } : { data: null, error: "Resposta inesperada da API." };
+  } catch (error) {
+    return { data: null, error: isApiRequestError(error) ? error.message : "API indisponível." };
   }
 }
 
@@ -678,6 +701,7 @@ export default async function OverviewPage({
     campaignOptions,
     adAccountCurrencies,
     leadSubmittedOverrideEnabled,
+    acquisitionFunnel,
   ] = await Promise.all([
     getOverviewReport(filters),
     getMetaAssets(),
@@ -685,7 +709,26 @@ export default async function OverviewPage({
     getCampaignOptions(filters),
     getAdAccountCurrencies(),
     getLeadSubmittedOverrideEnabled(),
+    getAcquisitionFunnel(filters, {
+      group: asStringParam(resolvedSearchParams[FUNNEL_PARAM.group]),
+      channel: asStringParam(resolvedSearchParams[FUNNEL_PARAM.channel]),
+      entry: asStringParam(resolvedSearchParams[FUNNEL_PARAM.entry]),
+    }),
   ]);
+  const funnelHiddenParams = Object.fromEntries(
+    Object.entries({
+      since: filters.since,
+      until: filters.until,
+      businessId: filters.businessId,
+      adAccountId: filters.adAccountId,
+      whatsappInstanceId: filters.whatsappInstanceId,
+      ...(filters.campaignIds.length === 1
+        ? { campaignId: filters.campaignIds[0] }
+        : filters.campaignIds.length > 1
+          ? { campaignIds: filters.campaignIds.join(",") }
+          : {}),
+    }).filter((entry): entry is [string, string] => Boolean(entry[1])),
+  );
   const leadsCopy = overviewLeadsCopy(leadSubmittedOverrideEnabled);
   const reportingAccounts = (metaAssets?.reportingAccounts ?? []).filter(
     (account) => account.active,
@@ -1126,6 +1169,12 @@ export default async function OverviewPage({
                 rangeLabel={report.rangeLabel}
               />
 
+              <AcquisitionFunnel
+                data={acquisitionFunnel.data}
+                error={acquisitionFunnel.error}
+                hiddenParams={funnelHiddenParams}
+              />
+
               <section
                 className="surface-panel overview-funnel-panel"
                 aria-label="Funil integrado"
@@ -1140,8 +1189,8 @@ export default async function OverviewPage({
                   <>
                     <div className="overview-section-heading">
                       <div>
-                        <span className="eyebrow">Funil integrado</span>
-                        <h2>Conversão por etapas</h2>
+                        <span className="eyebrow">Eventos enviados à Meta</span>
+                        <h2>Conversões da API de Conversões por etapa</h2>
                         <p>{funnelSummary}</p>
                       </div>
                     </div>
@@ -1627,8 +1676,8 @@ function ConversionFunnel({
     >
       <div className="conversion-funnel-heading">
         <div>
-          <span className="micro-label">Funil integrado</span>
-          <h2>Conversão por etapas</h2>
+          <span className="micro-label">Eventos enviados à Meta</span>
+          <h2>Conversões da API de Conversões por etapa</h2>
           <p>{description}</p>
         </div>
         <span className="conversion-funnel-stage-count">

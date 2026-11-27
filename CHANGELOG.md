@@ -7,7 +7,7 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
-Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Four new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest`, `20261126130000_tracking_whatsapp_ref` and `20261127120000_tracking_client_index`, all additive) and one new optional variable (`TRACKING_INGEST_ENABLED`, off by default).**
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Four new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest`, `20261126130000_tracking_whatsapp_ref`, `20261127120000_tracking_client_index` and `20261127130000_meta_campaign_link_clicks`, all additive) and two new optional variables (`TRACKING_INGEST_ENABLED`, off by default, and `COMPORVET_DATABASE_URL`).**
 
 ### Added
 
@@ -39,6 +39,16 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   per `session_id`) within 90 days; CTWA leads are Meta Ads; official
   WhatsApp contacts with no code and no ad are organic. Computed at read
   time; one new index on `TrackingEvent(workspaceId, clientId, eventTime)`.
+- **Funil de aquisição** on the overview (`GET /tracking/acquisition-funnel`),
+  replacing "Funil integrado" as the main funnel: ad impressions and link
+  clicks (Meta; Google Ads clicks from gclid visits), site/LP visitors and
+  WhatsApp clicks (unique browsers), WhatsApp conversations (CTWA, code and
+  direct), booked appointments and new customers (read-only from the
+  operation database, `COMPORVET_DATABASE_URL`). Filters: paid/organic,
+  channel and entry. The previous panel stays below as "Eventos enviados à
+  Meta". Meta sync now also stores `inline_link_clicks` per campaign/day.
+- **Light/dark mode**: "Modo escuro" switch at the top of every page, saved
+  in the browser; theme colours moved to CSS variables.
 
 ## [1.3.3] - 2026-11-03
 

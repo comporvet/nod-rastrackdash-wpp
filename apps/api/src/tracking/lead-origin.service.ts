@@ -94,6 +94,9 @@ export function siteLeadOrigin(
   };
 }
 
+/** Internal row: the phone hashes and Meta campaign never leave the API. */
+export type CollectedLead = LeadOriginRow & { phoneHashes: string[]; metaCampaignId: string | null };
+
 export function summarize(rows: LeadOriginRow[]) {
   const byChannel = new Map<string, { count: number; probable: number }>();
   let paid = 0;
@@ -118,12 +121,18 @@ export function summarize(rows: LeadOriginRow[]) {
 export class LeadOriginService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  async collect(workspaceId: string, from: Date, to: Date): Promise<CollectedLead[]> {
+    const [ctwaRows, ctwaHashes] = await this.ctwaLeads(workspaceId, from, to);
+    const [siteRows, siteHashes] = await this.siteLeads(workspaceId, from, to, ctwaHashes);
+    const directRows = await this.whatsappDirect(workspaceId, from, to, new Set([...siteHashes, ...ctwaHashes]));
+    return [...ctwaRows, ...siteRows, ...directRows].sort((a, b) => b.at.localeCompare(a.at));
+  }
+
   async report(workspaceId: string, query: { since?: string; until?: string }) {
     const range = monitorRange(query.since, query.until);
-    const [ctwaRows, ctwaHashes] = await this.ctwaLeads(workspaceId, range.from, range.to);
-    const [siteRows, siteHashes] = await this.siteLeads(workspaceId, range.from, range.to, ctwaHashes);
-    const directRows = await this.whatsappDirect(workspaceId, range.from, range.to, new Set([...siteHashes, ...ctwaHashes]));
-    const rows = [...ctwaRows, ...siteRows, ...directRows].sort((a, b) => b.at.localeCompare(a.at));
+    const rows: LeadOriginRow[] = (await this.collect(workspaceId, range.from, range.to)).map(
+      ({ phoneHashes: _phoneHashes, metaCampaignId: _metaCampaignId, ...row }) => row,
+    );
     return {
       since: range.since,
       until: range.until,
@@ -139,7 +148,7 @@ export class LeadOriginService {
     from: Date,
     to: Date,
     ctwaHashes: Set<string>,
-  ): Promise<[LeadOriginRow[], Set<string>]> {
+  ): Promise<[CollectedLead[], Set<string>]> {
     const matches = await this.prisma.trackingContactMatch.findMany({
       where: { workspaceId, messageAt: { gte: from, lt: to } },
       select: {
@@ -177,25 +186,29 @@ export class LeadOriginService {
       byClient.set(event.clientId!, list);
     }
     const hashes = new Set<string>();
-    const rows: LeadOriginRow[] = [];
+    const rows: CollectedLead[] = [];
     for (const match of matches) {
       match.phoneHashes.forEach((hash) => hashes.add(hash));
       if (match.phoneHashes.some((hash) => ctwaHashes.has(hash))) continue;
       const clientId = match.trackingEvent?.clientId;
-      rows.push(siteLeadOrigin(
-        {
-          messageAt: match.messageAt,
-          contactName: match.contactName,
-          refToken: match.refToken,
-          clickEnvironment: match.trackingEvent?.environment ?? null,
-        },
-        clientId ? byClient.get(clientId) ?? [] : [],
-      ));
+      rows.push({
+        ...siteLeadOrigin(
+          {
+            messageAt: match.messageAt,
+            contactName: match.contactName,
+            refToken: match.refToken,
+            clickEnvironment: match.trackingEvent?.environment ?? null,
+          },
+          clientId ? byClient.get(clientId) ?? [] : [],
+        ),
+        phoneHashes: match.phoneHashes,
+        metaCampaignId: null,
+      });
     }
     return [rows, hashes];
   }
 
-  private async ctwaLeads(workspaceId: string, from: Date, to: Date): Promise<[LeadOriginRow[], Set<string>]> {
+  private async ctwaLeads(workspaceId: string, from: Date, to: Date): Promise<[CollectedLead[], Set<string>]> {
     const leads = await this.prisma.lead.findMany({
       where: {
         workspaceId,
@@ -216,7 +229,7 @@ export class LeadOriginService {
       : [];
     const campaignName = new Map(campaigns.map((campaign) => [campaign.campaignId, campaign.name]));
     const hashes = new Set<string>();
-    const rows: LeadOriginRow[] = [];
+    const rows: CollectedLead[] = [];
     for (const lead of leads) {
       hashes.add(lead.phoneHash);
       rows.push({
@@ -231,6 +244,8 @@ export class LeadOriginService {
         lastNonDirect: null,
         visits: 0,
         refToken: null,
+        phoneHashes: [lead.phoneHash],
+        metaCampaignId: lead.campaignId,
       });
     }
     return [rows, hashes];
@@ -245,7 +260,7 @@ export class LeadOriginService {
     from: Date,
     to: Date,
     knownHashes: Set<string>,
-  ): Promise<LeadOriginRow[]> {
+  ): Promise<CollectedLead[]> {
     const baseWhere = {
       workspaceId,
       contactIdentityHash: { not: null },
@@ -289,6 +304,8 @@ export class LeadOriginService {
         lastNonDirect: null,
         visits: 0,
         refToken: null,
+        phoneHashes: [row.contactIdentityHash!],
+        metaCampaignId: null,
       }));
   }
 }

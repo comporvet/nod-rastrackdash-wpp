@@ -2255,6 +2255,7 @@ model MetaCampaignDailyInsight {
   spendCents               Int      @default(0)
   impressions              Int      @default(0)
   clicks                   Int      @default(0)
+  linkClicks               Int      @default(0)
   metaConversationsStarted Int      @default(0)
   syncedAt                 DateTime @default(now())
   createdAt                DateTime @default(now())

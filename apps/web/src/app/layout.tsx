@@ -16,6 +16,16 @@ const presentationModeBootstrap = `
   }
 `;
 
+// Applies the saved theme before paint (dark is the default).
+const themeBootstrap = `
+  try {
+    document.documentElement.dataset.theme =
+      window.localStorage.getItem("rastrackdash-theme") === "light" ? "light" : "dark";
+  } catch {
+    document.documentElement.dataset.theme = "dark";
+  }
+`;
+
 export function generateMetadata(): Metadata {
   const brand = getBrandConfig();
 
@@ -40,6 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script
           dangerouslySetInnerHTML={{ __html: presentationModeBootstrap }}
         />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body>{children}</body>
     </html>

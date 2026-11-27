@@ -224,6 +224,7 @@ describe("meta insights local aggregation parity", () => {
         spendCents: 0,
         impressions: 0,
         clicks: 0,
+        linkClicks: 0,
         actionValues: { [LEGACY]: 5, [ONE_DAY]: 8 },
       },
       {
@@ -234,6 +235,7 @@ describe("meta insights local aggregation parity", () => {
         spendCents: 0,
         impressions: 0,
         clicks: 0,
+        linkClicks: 0,
         actionValues: { [LEGACY]: 9, [ONE_DAY]: 2 },
       },
     ];
@@ -487,6 +489,7 @@ describe("meta adapter ad-level insight rows", () => {
         spendCents: 150,
         impressions: 10,
         clicks: 1,
+        linkClicks: 0,
         actionValues: { [LEGACY]: 2 },
       },
     ]);

@@ -23,9 +23,9 @@
   padding: 8px 10px 8px 38px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(5, 8, 7, 0.84);
+  background: rgba(var(--rgb-shade), 0.84);
   color: var(--ink);
-  color-scheme: dark;
+  color-scheme: var(--color-scheme);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 750;
@@ -125,8 +125,8 @@
   background:
     linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%),
     linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
-    rgba(5, 8, 7, 0.84);
+    linear-gradient(180deg, rgba(var(--rgb-overlay), 0.04), transparent),
+    rgba(var(--rgb-shade), 0.84);
   background-position:
     calc(100% - 17px) 16px,
     calc(100% - 12px) 16px,
@@ -190,7 +190,7 @@
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(5, 8, 7, 0.6);
+  background: rgba(var(--rgb-shade), 0.6);
   font-size: 12px;
 }
 
@@ -224,7 +224,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 120px),
+    linear-gradient(180deg, rgba(var(--rgb-overlay), 0.03), transparent 120px),
     var(--surface);
   transition:
     border-color 140ms ease,
@@ -239,7 +239,7 @@
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.012) 0 8px,
+      rgba(var(--rgb-overlay), 0.012) 0 8px,
       transparent 8px 16px
     ),
     var(--surface);
@@ -342,7 +342,7 @@
 
 .crm-card.is-draggable:hover,
 .crm-card:has(.crm-card-open:hover) {
-  border-color: rgba(190, 226, 215, 0.26);
+  border-color: rgba(var(--rgb-line-soft), 0.26);
 }
 
 .crm-card.is-draggable:focus-visible,
@@ -540,7 +540,7 @@
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(5, 8, 7, 0.7);
+  background: rgba(var(--rgb-shade), 0.7);
   color: var(--ink-soft);
   font: inherit;
   font-size: 13px;

@@ -16,8 +16,8 @@
 
 body {
   background:
-    linear-gradient(90deg, rgba(190, 226, 215, 0.018) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(190, 226, 215, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--rgb-line-soft), 0.018) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--rgb-line-soft), 0.018) 1px, transparent 1px),
     var(--graphite-950);
   background-size: 40px 40px;
 }
@@ -27,7 +27,7 @@ body {
 .sidebar {
   background:
     linear-gradient(180deg, rgba(18, 184, 132, 0.045), transparent 260px),
-    rgba(5, 10, 9, 0.97);
+    rgba(var(--rgb-shade), 0.97);
   box-shadow: 12px 0 34px rgba(0, 0, 0, 0.14);
   scrollbar-color: rgba(66, 240, 168, 0.28) transparent;
   scrollbar-gutter: auto;
@@ -351,10 +351,10 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.04),
-      rgba(255, 255, 255, 0.015)
+      rgba(var(--rgb-overlay), 0.04),
+      rgba(var(--rgb-overlay), 0.015)
     ),
-    rgba(5, 8, 7, 0.84);
+    rgba(var(--rgb-shade), 0.84);
 }
 
 .lead-filter-advanced-grid input.filter-control {
@@ -362,10 +362,10 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.04),
-      rgba(255, 255, 255, 0.015)
+      rgba(var(--rgb-overlay), 0.04),
+      rgba(var(--rgb-overlay), 0.015)
     ),
-    rgba(5, 8, 7, 0.84);
+    rgba(var(--rgb-shade), 0.84);
 }
 
 .lead-advanced-filters {
@@ -1675,7 +1675,7 @@ body {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--rgb-overlay), 0.02);
 }
 
 .report-period-context svg {
@@ -1722,12 +1722,12 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.035),
-      rgba(255, 255, 255, 0.012)
+      rgba(var(--rgb-overlay), 0.035),
+      rgba(var(--rgb-overlay), 0.012)
     ),
-    rgba(5, 8, 7, 0.92);
+    rgba(var(--rgb-shade), 0.92);
   color: var(--ink);
-  color-scheme: dark;
+  color-scheme: var(--color-scheme);
   font-family: var(--font-body);
   font-weight: 750;
 }
@@ -1839,7 +1839,7 @@ body {
   justify-content: center;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
-  background: rgba(5, 8, 7, 0.42);
+  background: rgba(var(--rgb-shade), 0.42);
   color: var(--ink-soft);
   cursor: pointer;
   font: inherit;
@@ -2033,7 +2033,7 @@ body {
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  background: rgba(5, 8, 7, 0.48);
+  background: rgba(var(--rgb-shade), 0.48);
 }
 
 .report-metric-tabs a {
@@ -2268,7 +2268,7 @@ body {
   height: 16px;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: rgba(3, 7, 6, 0.72);
+  background: rgba(var(--rgb-shade), 0.72);
   transition:
     border-color 140ms ease,
     background 140ms ease,
@@ -2536,7 +2536,7 @@ body {
     padding: 6px 10px;
     border: 1px solid var(--border);
     border-radius: 5px;
-    background: rgba(5, 8, 7, 0.48);
+    background: rgba(var(--rgb-shade), 0.48);
     color: var(--ink-muted);
     font-size: 12px;
     font-weight: 800;
@@ -2753,7 +2753,7 @@ body {
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  background: rgba(5, 8, 7, 0.48);
+  background: rgba(var(--rgb-shade), 0.48);
 }
 
 .report-insight-position {
@@ -3097,12 +3097,12 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.035),
-      rgba(255, 255, 255, 0.012)
+      rgba(var(--rgb-overlay), 0.035),
+      rgba(var(--rgb-overlay), 0.012)
     ),
-    rgba(5, 8, 7, 0.92);
+    rgba(var(--rgb-shade), 0.92);
   color: var(--ink);
-  color-scheme: dark;
+  color-scheme: var(--color-scheme);
   font-family: var(--font-body);
   font-weight: 750;
 }
@@ -3290,7 +3290,7 @@ body {
   gap: 24px;
   padding: 13px 20px;
   border-top: 1px solid var(--border);
-  background: rgba(5, 8, 7, 0.28);
+  background: rgba(var(--rgb-shade), 0.28);
 }
 
 .audit-classification-label {
@@ -3894,7 +3894,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(var(--rgb-overlay), 0.025);
 }
 
 .integration-overview-icon.meta {
@@ -4051,7 +4051,7 @@ body {
 
 .integration-meta-oauth {
   margin: 0;
-  background: rgba(255, 255, 255, 0.022);
+  background: rgba(var(--rgb-overlay), 0.022);
 }
 
 .integration-meta-content > .meta-manual-panel {
@@ -4923,7 +4923,7 @@ body {
   place-items: center;
   overflow-y: auto;
   padding: 24px;
-  background: rgba(1, 5, 4, 0.82);
+  background: rgba(var(--rgb-shade), 0.82);
 }
 
 .legacy-rule-adapt {
@@ -4993,7 +4993,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 7px;
   outline: 0;
-  background: rgba(5, 8, 7, 0.92);
+  background: rgba(var(--rgb-shade), 0.92);
   color: var(--ink);
   font: inherit;
   font-size: 13px;
@@ -5043,7 +5043,7 @@ body {
   padding: 9px 11px;
   border: 1px solid var(--border);
   border-radius: 7px;
-  background: rgba(5, 8, 7, 0.54);
+  background: rgba(var(--rgb-shade), 0.54);
 }
 
 .provider-channel-selector-grid input {
@@ -5696,7 +5696,7 @@ body {
 
 /* Official artwork with dark ink: neutral light tile, never recolored. */
 .integration-logo.on-light {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(var(--rgb-overlay), 0.5);
   background: #f6f8f7;
 }
 
@@ -5824,7 +5824,7 @@ body {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(var(--rgb-overlay), 0.025);
 }
 
 .integration-modal-note strong {
@@ -5875,7 +5875,7 @@ body {
 .app-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(2, 7, 6, 0.78);
+  background: rgba(var(--rgb-shade), 0.78);
   backdrop-filter: blur(3px);
 }
 
@@ -6075,7 +6075,7 @@ body {
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(var(--rgb-overlay), 0.025);
   color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.5;
@@ -6180,7 +6180,7 @@ body {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--rgb-overlay), 0.02);
 }
 
 .conversion-unify-groups li > span {
@@ -6376,7 +6376,7 @@ body {
   padding: 6px 10px;
   border-left: 2px solid rgba(242, 193, 78, 0.7);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(var(--rgb-overlay), 0.04);
   color: var(--ink-soft);
 }
 
@@ -6630,7 +6630,7 @@ body {
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--rgb-overlay), 0.02);
   cursor: pointer;
   transition:
     border-color 140ms ease,
@@ -6856,7 +6856,7 @@ body {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--rgb-overlay), 0.02);
 }
 
 .conversion-flow-summary div {
@@ -7004,7 +7004,7 @@ body {
 /* Disabled "Unificar" reads as disabled: neutral, not-allowed. */
 .conversion-unify-review .button.primary:disabled {
   border-color: var(--border);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--rgb-overlay), 0.06);
   color: var(--ink-muted);
   opacity: 1;
   cursor: not-allowed;

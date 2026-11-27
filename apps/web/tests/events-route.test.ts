@@ -789,8 +789,8 @@ describe("events route", () => {
     expect(auditStyles).toContain(".audit-filter-form {");
     expect(auditStyles).toContain("padding: 12px 14px;");
     expect(auditStyles).toContain('.audit-filter-form input[type="date"] {');
-    expect(auditStyles).toContain("rgba(5, 8, 7, 0.92)");
-    expect(auditStyles).toContain("color-scheme: dark;");
+    expect(auditStyles).toContain("rgba(var(--rgb-shade), 0.92)");
+    expect(auditStyles).toContain("color-scheme: var(--color-scheme);");
     expect(auditStyles).toContain(".audit-advanced-filters[open] {");
     expect(auditStyles).toContain("grid-column: 1 / -1;");
   });

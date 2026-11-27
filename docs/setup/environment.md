@@ -478,6 +478,10 @@ depois de mudar.
 
 Guia: [`gtm-server-side.md`](gtm-server-side.md).
 
+### Funil de aquisição: banco da operação (opcional)
+
+`COMPORVET_DATABASE_URL` é a URL PostgreSQL de um **usuário só de leitura** no banco onde o n8n grava os clientes (`Clientes`) e os agendamentos (`Rastrack_Agendamentos`). Com ela, o funil da Visão geral mostra as etapas **Agendaram consulta** e **Tornaram-se clientes**. Sem ela, essas etapas aparecem como "sem acesso ao banco". A API só faz `SELECT` e guarda o resultado em memória por 5 minutos.
+
 ## URLs, cookie e primeiro administrador
 
 Use estes valores de formato (exemplos sem segredos):

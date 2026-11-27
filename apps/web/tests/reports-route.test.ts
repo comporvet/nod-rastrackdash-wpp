@@ -724,7 +724,7 @@ describe("reports route", () => {
       /\.report-advanced-filters\[open\]\s*{[^}]*grid-column:\s*1\s*\/\s*-1/s,
     );
     expect(css).toMatch(
-      /\.report-period-form input\[type="date"\]\s*{[^}]*rgba\(5,\s*8,\s*7,\s*0\.92\)[^}]*color-scheme:\s*dark/s,
+      /\.report-period-form input\[type="date"\]\s*{[^}]*rgba\(var\(--rgb-shade\),\s*0\.92\)[^}]*color-scheme:\s*var\(--color-scheme\)/s,
     );
   });
 
