@@ -715,20 +715,6 @@ export default async function OverviewPage({
       entry: asStringParam(resolvedSearchParams[FUNNEL_PARAM.entry]),
     }),
   ]);
-  const funnelHiddenParams = Object.fromEntries(
-    Object.entries({
-      since: filters.since,
-      until: filters.until,
-      businessId: filters.businessId,
-      adAccountId: filters.adAccountId,
-      whatsappInstanceId: filters.whatsappInstanceId,
-      ...(filters.campaignIds.length === 1
-        ? { campaignId: filters.campaignIds[0] }
-        : filters.campaignIds.length > 1
-          ? { campaignIds: filters.campaignIds.join(",") }
-          : {}),
-    }).filter((entry): entry is [string, string] => Boolean(entry[1])),
-  );
   const leadsCopy = overviewLeadsCopy(leadSubmittedOverrideEnabled);
   const reportingAccounts = (metaAssets?.reportingAccounts ?? []).filter(
     (account) => account.active,
@@ -1172,7 +1158,6 @@ export default async function OverviewPage({
               <AcquisitionFunnel
                 data={acquisitionFunnel.data}
                 error={acquisitionFunnel.error}
-                hiddenParams={funnelHiddenParams}
               />
 
               <section

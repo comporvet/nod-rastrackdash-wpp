@@ -4,27 +4,43 @@ import { useEffect, useRef, useState } from "react";
 
 type Option = { value: string; label: string };
 
-/** Funnel filters apply on change, like the overview filters (no submit button). */
+export type FunnelFilterValues = { group: string; channels: string[]; entry: string };
+
+/** Funnel filters apply on change (no submit button); only the funnel reloads. */
 export function AcquisitionFunnelFilters({
-  hiddenParams,
-  selects,
-  multi,
+  values,
+  groupOptions,
+  entryOptions,
+  channelOptions,
+  disabled,
+  onChange,
 }: {
-  hiddenParams: Record<string, string>;
-  selects: { name: string; label: string; value: string; options: Option[] }[];
-  multi: { name: string; label: string; values: string[]; options: Option[] };
+  values: FunnelFilterValues;
+  groupOptions: Option[];
+  entryOptions: Option[];
+  channelOptions: Option[];
+  disabled?: boolean;
+  onChange: (next: FunnelFilterValues) => void;
 }) {
-  const form = useRef<HTMLFormElement>(null);
   const dropdown = useRef<HTMLDetailsElement>(null);
-  const [checked, setChecked] = useState<Set<string>>(() => new Set(multi.values));
-  const initial = useRef(new Set(multi.values));
+  const [checked, setChecked] = useState<Set<string>>(() => new Set(values.channels));
+  const checkedRef = useRef(checked);
+  checkedRef.current = checked;
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
 
-  const changed = () =>
-    checked.size !== initial.current.size || [...checked].some((value) => !initial.current.has(value));
+  const changed = () => {
+    const current = new Set(valuesRef.current.channels);
+    return (
+      checkedRef.current.size !== current.size || [...checkedRef.current].some((value) => !current.has(value))
+    );
+  };
 
-  // The choice applies when the list closes, so several channels can be ticked in one go.
+  // The channel choice applies when the list closes, so several channels can be ticked in one go.
   const onToggle = () => {
-    if (!dropdown.current?.open && changed()) form.current?.requestSubmit();
+    if (!dropdown.current?.open && changed()) {
+      onChange({ ...valuesRef.current, channels: [...checkedRef.current] });
+    }
   };
 
   useEffect(() => {
@@ -47,40 +63,38 @@ export function AcquisitionFunnelFilters({
     checked.size === 0
       ? "Todos os canais"
       : checked.size === 1
-        ? (multi.options.find((option) => checked.has(option.value))?.label ?? "1 canal")
+        ? (channelOptions.find((option) => checked.has(option.value))?.label ?? "1 canal")
         : `${checked.size} canais`;
 
   return (
-    <form ref={form} className="acquisition-funnel-filters" action="/overview">
-      {Object.entries(hiddenParams).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value} />
-      ))}
-      {selects.map((select) => (
-        <label key={select.name} className="filter-field">
-          <span>{select.label}</span>
-          <select name={select.name} defaultValue={select.value} onChange={() => form.current?.requestSubmit()}>
-            {select.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ))}
+    <div className="acquisition-funnel-filters" role="group" aria-label="Filtros do funil">
+      <label className="filter-field">
+        <span>Tráfego</span>
+        <select
+          value={values.group}
+          disabled={disabled}
+          onChange={(event) => onChange({ ...values, group: event.target.value })}
+        >
+          {groupOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="filter-field">
-        <span>{multi.label}</span>
+        <span>Canais</span>
         <details ref={dropdown} className="funnel-multi" onToggle={onToggle}>
-          <summary>{summary}</summary>
-          <div className="funnel-multi-list" role="group" aria-label={multi.label}>
+          <summary aria-disabled={disabled}>{summary}</summary>
+          <div className="funnel-multi-list" role="group" aria-label="Canais">
             <label>
               <input type="checkbox" checked={checked.size === 0} onChange={() => setChecked(new Set())} />
               Todos os canais
             </label>
-            {multi.options.map((option) => (
+            {channelOptions.map((option) => (
               <label key={option.value}>
                 <input
                   type="checkbox"
-                  name={multi.name}
                   value={option.value}
                   checked={checked.has(option.value)}
                   onChange={() => toggle(option.value)}
@@ -91,6 +105,20 @@ export function AcquisitionFunnelFilters({
           </div>
         </details>
       </div>
-    </form>
+      <label className="filter-field">
+        <span>Entrada</span>
+        <select
+          value={values.entry}
+          disabled={disabled}
+          onChange={(event) => onChange({ ...values, entry: event.target.value })}
+        >
+          {entryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
 }

@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { apiFetch } from "../../../lib/api";
 import {
   FUNNEL_PARAM,
   brl,
@@ -6,29 +10,73 @@ import {
   funnelRows,
   groupOptions,
   integer,
+  isFunnelData,
   percent,
   trapezoid,
   type AcquisitionFunnelData,
 } from "./acquisition-funnel-model";
-import { AcquisitionFunnelFilters } from "./acquisition-funnel-filters";
+import { AcquisitionFunnelFilters, type FunnelFilterValues } from "./acquisition-funnel-filters";
 
 const STAGE_HEIGHT = 14;
 
 export function AcquisitionFunnel({
-  data,
-  error,
-  hiddenParams,
+  data: initialData,
+  error: initialError,
 }: {
   data: AcquisitionFunnelData | null;
   error: string | null;
-  hiddenParams: Record<string, string>;
 }) {
-  const rows = data ? funnelRows(data) : [];
+  const [data, setData] = useState(initialData);
+  const [error, setError] = useState(initialError);
+  const [loading, setLoading] = useState(false);
+  const request = useRef(0);
   const filters = data?.filters ?? { group: "all", channels: [], entry: "all", campaignIds: [] };
+  const rows = data ? funnelRows(data) : [];
   const height = Math.max(1, rows.length) * STAGE_HEIGHT;
 
+  // Only the funnel reloads: the rest of the overview keeps its data.
+  const apply = async (next: FunnelFilterValues) => {
+    const id = ++request.current;
+    const params = new URLSearchParams();
+    if (data?.since && data?.until) {
+      params.set("since", data.since);
+      params.set("until", data.until);
+    }
+    if (next.group !== "all") params.set("group", next.group);
+    if (next.channels.length) params.set("channel", next.channels.join(","));
+    if (next.entry !== "all") params.set("entry", next.entry);
+    if (filters.campaignIds.length) params.set("campaignIds", filters.campaignIds.join(","));
+    setLoading(true);
+    try {
+      const result = await apiFetch<unknown>(`/tracking/acquisition-funnel?${params.toString()}`);
+      if (id !== request.current) return;
+      if (isFunnelData(result)) {
+        setData(result);
+        setError(null);
+      } else {
+        setError("Resposta inesperada da API.");
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.delete(FUNNEL_PARAM.group);
+      url.searchParams.delete(FUNNEL_PARAM.entry);
+      url.searchParams.delete(FUNNEL_PARAM.channel);
+      if (next.group !== "all") url.searchParams.set(FUNNEL_PARAM.group, next.group);
+      if (next.entry !== "all") url.searchParams.set(FUNNEL_PARAM.entry, next.entry);
+      for (const channel of next.channels) url.searchParams.append(FUNNEL_PARAM.channel, channel);
+      window.history.replaceState(window.history.state, "", url);
+    } catch (cause) {
+      if (id === request.current) setError(cause instanceof Error ? cause.message : "API indisponível.");
+    } finally {
+      if (id === request.current) setLoading(false);
+    }
+  };
+
   return (
-    <section className="surface-panel acquisition-funnel" aria-label="Funil de aquisição">
+    <section
+      className={`surface-panel acquisition-funnel${loading ? " is-loading" : ""}`}
+      aria-label="Funil de aquisição"
+      aria-busy={loading || undefined}
+    >
       <div className="overview-section-heading">
         <div>
           <span className="eyebrow">Funil de aquisição</span>
@@ -41,12 +89,12 @@ export function AcquisitionFunnel({
       </div>
 
       <AcquisitionFunnelFilters
-        hiddenParams={hiddenParams}
-        selects={[
-          { name: FUNNEL_PARAM.group, label: "Tráfego", value: filters.group, options: groupOptions },
-          { name: FUNNEL_PARAM.entry, label: "Entrada", value: filters.entry, options: entryOptions },
-        ]}
-        multi={{ name: FUNNEL_PARAM.channel, label: "Canais", values: filters.channels ?? [], options: channelOptions }}
+        values={{ group: filters.group, channels: filters.channels ?? [], entry: filters.entry }}
+        groupOptions={groupOptions}
+        entryOptions={entryOptions}
+        channelOptions={channelOptions}
+        disabled={!data}
+        onChange={apply}
       />
 
       {error || !data ? (
@@ -94,9 +142,7 @@ export function AcquisitionFunnel({
                 </div>
                 <div className="acquisition-funnel-value">
                   <strong>{integer(row.value)}</strong>
-                  <span className="acquisition-funnel-share">
-                    {row.fromTop === null ? "—" : percent(row.fromTop)}
-                  </span>
+                  <span className="acquisition-funnel-share">{row.fromTop === null ? "—" : percent(row.fromTop)}</span>
                   <small>
                     {row.value === null
                       ? "Não se aplica"
@@ -120,7 +166,8 @@ export function AcquisitionFunnel({
           Período {data.since} a {data.until}.
           {data.spendCents !== null ? ` Investimento Meta: ${brl(data.spendCents)}.` : ""} Origem pelo primeiro contato do
           navegador nos {data.lookbackDays} dias anteriores. Pagos: Google Ads e Meta Ads; orgânicos: busca, redes sociais,
-          outros sites, acesso direto e WhatsApp direto.
+          outros sites, acesso direto e WhatsApp direto. O percentual abaixo de cada número é sobre a primeira etapa do
+          funil.
           {data.filters.campaignIds.length
             ? " O filtro de campanhas da página vale para as métricas e leads da Meta."
             : ""}
