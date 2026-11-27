@@ -2227,6 +2227,9 @@ export class MetaReportingService {
             impressions: insight?.impressions ?? 0,
             clicks: insight?.clicks ?? 0,
             linkClicks: insight?.linkClicks ?? 0,
+            reach: insight?.reach ?? 0,
+            videoViews: insight?.videoViews ?? 0,
+            landingPageViews: insight?.landingPageViews ?? 0,
             metaConversationsStarted: insight?.metaConversationsStarted ?? 0,
             syncedAt: input.syncedAt,
           };
@@ -2281,6 +2284,10 @@ export class MetaReportingService {
             spendCents: insight?.spendCents ?? 0,
             impressions: insight?.impressions ?? 0,
             clicks: insight?.clicks ?? 0,
+            linkClicks: insight?.linkClicks ?? 0,
+            reach: insight?.reach ?? 0,
+            videoViews: insight?.videoViews ?? 0,
+            landingPageViews: insight?.landingPageViews ?? 0,
             metaConversationsStarted: insight?.metaConversationsStarted ?? 0,
             syncedAt: input.syncedAt,
           };
@@ -2334,6 +2341,10 @@ export class MetaReportingService {
             spendCents: insight?.spendCents ?? 0,
             impressions: insight?.impressions ?? 0,
             clicks: insight?.clicks ?? 0,
+            linkClicks: insight?.linkClicks ?? 0,
+            reach: insight?.reach ?? 0,
+            videoViews: insight?.videoViews ?? 0,
+            landingPageViews: insight?.landingPageViews ?? 0,
             metaConversationsStarted: insight?.metaConversationsStarted ?? 0,
             syncedAt: input.syncedAt,
           };

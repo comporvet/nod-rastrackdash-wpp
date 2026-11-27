@@ -5,6 +5,8 @@ import {
   ForbiddenException,
   Get,
   Inject,
+  NotFoundException,
+  Optional,
   Param,
   Post,
   Put,
@@ -30,6 +32,7 @@ import { WorkspacesService } from "../workspaces/workspaces.service";
 import { MetaReportSyncQueueService } from "./meta-report-sync-queue.service";
 import { MetaInitialSyncPeriodService } from "./meta-initial-sync-period";
 import { MetaReportingService } from "./meta-reporting.service";
+import { ReportOptimizationService } from "./report-optimization.service";
 
 type HeaderResponse = {
   setHeader(name: string, value: string): void;
@@ -84,7 +87,49 @@ export class ReportingController {
     private readonly workspacesService: WorkspacesService,
     @Inject(DiagnosticsService)
     private readonly diagnosticsService: DiagnosticsService,
+    @Optional()
+    @Inject(ReportOptimizationService)
+    private readonly reportOptimizationService?: ReportOptimizationService,
   ) {}
+
+  @Get("optimization")
+  async getOptimizationReport(
+    @AuthToken() refreshToken: string,
+    @Query("since") since?: string,
+    @Query("until") until?: string,
+    @Query("businessId") businessId?: string | string[],
+    @Query("adAccountId") adAccountId?: string | string[],
+    @Query("adAccountIds") adAccountIds?: string | string[],
+    @Query("campaignIds") campaignIds?: string | string[],
+    @Query("status") status?: string | string[],
+    @Query("delivery") delivery?: string | string[],
+    @Query("whatsappClassification") whatsappClassification?: string | string[],
+    @Query("whatsappInstanceId") whatsappInstanceId?: string | string[],
+  ) {
+    const workspaceId = await this.getCurrentWorkspaceId(refreshToken);
+    const { rangeLabel, ...period } = this.parseReportPeriod(since, until);
+    const filters = this.parseReportFilters({
+      businessId,
+      adAccountId,
+      adAccountIds,
+      campaignIds,
+      status,
+      delivery,
+      whatsappClassification,
+      whatsappInstanceId,
+    });
+
+    if (!this.reportOptimizationService) {
+      throw new NotFoundException();
+    }
+
+    return this.reportOptimizationService.report({
+      workspaceId,
+      rangeLabel,
+      ...period,
+      ...filters,
+    });
+  }
 
   @Get("campaigns")
   async getCampaignReports(

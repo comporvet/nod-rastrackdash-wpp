@@ -7,7 +7,7 @@ Version 1.0.0 was the initial public release of the `nod-rastrackdash-wpp` stude
 
 ## [Unreleased]
 
-Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Four new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest`, `20261126130000_tracking_whatsapp_ref`, `20261127120000_tracking_client_index` and `20261127130000_meta_campaign_link_clicks`, all additive) and two new optional variables (`TRACKING_INGEST_ENABLED`, off by default, and `COMPORVET_DATABASE_URL`).**
+Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unreleased.json). **Four new migrations (`20261121120000_google_analytics_connection`, `20261126120000_tracking_server_ingest`, `20261126130000_tracking_whatsapp_ref`, `20261127120000_tracking_client_index` and `20261127130000_meta_campaign_link_clicks` and `20261127140000_meta_daily_delivery_metrics`, all additive) and two new optional variables (`TRACKING_INGEST_ENABLED`, off by default, and `COMPORVET_DATABASE_URL`).**
 
 ### Added
 
@@ -47,6 +47,14 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   operation database, `COMPORVET_DATABASE_URL`). Filters: paid/organic,
   channel and entry. The previous panel stays below as "Eventos enviados à
   Meta". Meta sync now also stores `inline_link_clicks` per campaign/day.
+- **Relatórios, modo Métricas** (`GET /reports/optimization`): metrics of
+  the traffic optimization guide in one table, campaign > ad set > ad rows
+  that expand and collapse, metric categories that collapse to their key
+  metric, and an explanation on hover for every metric. CPM, frequency, CTR,
+  CPC, Hook Rate, Connect Rate, click-to-conversation, cost per
+  conversation, lead quality, CPA, average ticket, ROAS and LTV. Meta sync
+  now also stores link clicks, daily reach, 3-second video views and landing
+  page views for campaigns, ad sets and ads.
 - **Light/dark mode**: "Modo escuro" switch at the top of every page, saved
   in the browser; theme colours moved to CSS variables.
 

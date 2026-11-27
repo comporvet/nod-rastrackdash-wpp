@@ -18,8 +18,8 @@ import type {
  * conversation metric is derived only AFTER summing raw per-type counts, so
  * the "manual" read mode (max over compatible action types) keeps the exact
  * semantics of a campaign-level read. Non-additive metrics (reach, frequency,
- * unique_*) are not read by WppTrack; if one is ever added it must keep being
- * fetched at its own level.
+ * unique_*) are only approximated here: summed ad reach overstates the reach
+ * of a campaign or ad set (people seeing several ads count more than once).
  */
 
 export const LEGACY_CONVERSATION_ACTION_TYPE =
@@ -66,6 +66,9 @@ type Bucket = {
   impressions: number;
   clicks: number;
   linkClicks: number;
+  reach: number;
+  videoViews: number;
+  landingPageViews: number;
   actionValues: Record<string, number>;
 };
 
@@ -74,6 +77,9 @@ function addRow(bucket: Bucket, row: MetaAdInsightRow): void {
   bucket.impressions += row.impressions;
   bucket.clicks += row.clicks;
   bucket.linkClicks += row.linkClicks;
+  bucket.reach += row.reach;
+  bucket.videoViews += row.videoViews;
+  bucket.landingPageViews += row.landingPageViews;
 
   for (const [type, value] of Object.entries(row.actionValues)) {
     bucket.actionValues[type] = (bucket.actionValues[type] ?? 0) + value;
@@ -81,7 +87,7 @@ function addRow(bucket: Bucket, row: MetaAdInsightRow): void {
 }
 
 function emptyBucket(): Bucket {
-  return { spendCents: 0, impressions: 0, clicks: 0, linkClicks: 0, actionValues: {} };
+  return { spendCents: 0, impressions: 0, clicks: 0, linkClicks: 0, reach: 0, videoViews: 0, landingPageViews: 0, actionValues: {} };
 }
 
 function groupRows<TKey>(
@@ -112,6 +118,9 @@ function metrics(bucket: Bucket, readMode: MetaInsightReadMode) {
     impressions: bucket.impressions,
     clicks: bucket.clicks,
     linkClicks: bucket.linkClicks,
+    reach: bucket.reach,
+    videoViews: bucket.videoViews,
+    landingPageViews: bucket.landingPageViews,
     metaConversationsStarted: conversationsFromActionValues(
       bucket.actionValues,
       readMode,

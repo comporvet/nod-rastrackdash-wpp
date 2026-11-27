@@ -218,6 +218,9 @@ export type MetaCampaignInsight = {
   impressions: number;
   clicks: number;
   linkClicks: number;
+  reach: number;
+  videoViews: number;
+  landingPageViews: number;
   metaConversationsStarted: number;
 };
 
@@ -232,6 +235,9 @@ export type MetaAdSetInsight = {
   impressions: number;
   clicks: number;
   linkClicks: number;
+  reach: number;
+  videoViews: number;
+  landingPageViews: number;
   metaConversationsStarted: number;
 };
 
@@ -247,6 +253,9 @@ export type MetaAdInsight = {
   impressions: number;
   clicks: number;
   linkClicks: number;
+  reach: number;
+  videoViews: number;
+  landingPageViews: number;
   metaConversationsStarted: number;
 };
 
@@ -271,6 +280,9 @@ export type MetaAdInsightRow = {
   impressions: number;
   clicks: number;
   linkClicks: number;
+  reach: number;
+  videoViews: number;
+  landingPageViews: number;
   actionValues: Record<string, number>;
 };
 
@@ -398,6 +410,7 @@ type MetaInsightGraphNode = {
   spend?: unknown;
   impressions?: unknown;
   inline_link_clicks?: unknown;
+  reach?: unknown;
   clicks?: unknown;
   date_start?: unknown;
   date_stop?: unknown;
@@ -1115,7 +1128,7 @@ export class MetaAdapter implements IntegrationAdapter {
   }): Promise<MetaCampaignInsight[]> {
     const payload = await this.listInsights({
       ...input,
-      fields: "campaign_id,spend,impressions,clicks,inline_link_clicks,actions",
+      fields: "campaign_id,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "campaign",
     });
 
@@ -1126,6 +1139,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1144,7 +1158,7 @@ export class MetaAdapter implements IntegrationAdapter {
     const payload = await this.listInsights({
       ...input,
       fields:
-        "campaign_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,actions",
+        "campaign_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "campaign",
       timeIncrement: 1,
     });
@@ -1157,6 +1171,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1176,7 +1191,7 @@ export class MetaAdapter implements IntegrationAdapter {
   }): Promise<MetaAdSetInsight[]> {
     const payload = await this.listInsights({
       ...input,
-      fields: "campaign_id,adset_id,spend,impressions,clicks,inline_link_clicks,actions",
+      fields: "campaign_id,adset_id,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "adset",
     });
 
@@ -1188,6 +1203,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1208,7 +1224,7 @@ export class MetaAdapter implements IntegrationAdapter {
     const payload = await this.listInsights({
       ...input,
       fields:
-        "campaign_id,adset_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,actions",
+        "campaign_id,adset_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "adset",
       timeIncrement: 1,
     });
@@ -1222,6 +1238,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1241,7 +1258,7 @@ export class MetaAdapter implements IntegrationAdapter {
   }): Promise<MetaAdInsight[]> {
     const payload = await this.listInsights({
       ...input,
-      fields: "campaign_id,adset_id,ad_id,spend,impressions,clicks,inline_link_clicks,actions",
+      fields: "campaign_id,adset_id,ad_id,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "ad",
     });
 
@@ -1254,6 +1271,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1274,7 +1292,7 @@ export class MetaAdapter implements IntegrationAdapter {
     const payload = await this.listInsights({
       ...input,
       fields:
-        "campaign_id,adset_id,ad_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,actions",
+        "campaign_id,adset_id,ad_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "ad",
       timeIncrement: 1,
     });
@@ -1289,6 +1307,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         metaConversationsStarted: this.messagingConversationStarted(
           item.actions,
           input.readMode,
@@ -1320,8 +1339,8 @@ export class MetaAdapter implements IntegrationAdapter {
       until: input.until,
       readMode: input.readMode,
       fields: input.daily
-        ? "campaign_id,adset_id,ad_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,actions"
-        : "campaign_id,adset_id,ad_id,spend,impressions,clicks,inline_link_clicks,actions",
+        ? "campaign_id,adset_id,ad_id,date_start,date_stop,spend,impressions,clicks,inline_link_clicks,reach,actions"
+        : "campaign_id,adset_id,ad_id,spend,impressions,clicks,inline_link_clicks,reach,actions",
       level: "ad",
       ...(input.daily ? { timeIncrement: 1 } : {}),
       filtering: [
@@ -1344,6 +1363,7 @@ export class MetaAdapter implements IntegrationAdapter {
         impressions: this.asInteger(item.impressions),
         clicks: this.asInteger(item.clicks),
         linkClicks: this.asInteger(item.inline_link_clicks),
+        ...this.deliveryExtras(item),
         actionValues: this.messagingActionValues(item.actions),
       }))
       .filter(
@@ -1351,6 +1371,22 @@ export class MetaAdapter implements IntegrationAdapter {
           Boolean(item.adId && item.adSetId && item.campaignId) &&
           (!input.daily || Boolean(item.date)),
       );
+  }
+
+  /**
+   * Reach is per day and not additive across days; video_view is Meta's
+   * 3-second video play (Hook Rate) and landing_page_view needs the pixel.
+   */
+  private deliveryExtras(item: MetaInsightGraphNode): {
+    reach: number;
+    videoViews: number;
+    landingPageViews: number;
+  } {
+    return {
+      reach: this.asInteger(item.reach),
+      videoViews: this.actionValue(item.actions, "video_view"),
+      landingPageViews: this.actionValue(item.actions, "landing_page_view"),
+    };
   }
 
   /** Raw counts of the action types the conversation metric can read. */

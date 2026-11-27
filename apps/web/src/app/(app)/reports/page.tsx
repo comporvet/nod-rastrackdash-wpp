@@ -94,6 +94,8 @@ import {
   type ReportSelectionLevel,
 } from "./report-selection-controls";
 import { WhatsappReviewActions } from "./whatsapp-review-actions";
+import { isOptimizationReport, type OptimizationReport } from "./optimization-model";
+import { OptimizationTable } from "./optimization-table";
 import {
   resolveWhatsappReviewActionState,
   type WhatsappClassification,
@@ -101,7 +103,7 @@ import {
 
 type ReportsSearchParams = Record<string, string | string[] | undefined>;
 type ReportView = "campaigns" | "adsets" | "ads";
-type ReportMode = "table" | "insights";
+type ReportMode = "table" | "insights" | "metrics";
 type ReportMetricGroup = "overview" | "traffic" | "funnel" | "revenue";
 type ReportFetchState = "real" | "empty" | "error";
 type CampaignReportsResult = {
@@ -295,6 +297,33 @@ function metaStatusLabel(status: string | null | undefined) {
   };
 
   return labels[status.toUpperCase()] ?? "Status desconhecido";
+}
+
+async function getOptimizationReport(
+  filters: ReportFilters,
+): Promise<{ report: OptimizationReport | null; error: string | null }> {
+  try {
+    const params = new URLSearchParams();
+    for (const key of ["since", "until", "businessId", "whatsappInstanceId", "status", "delivery", "whatsappClassification"] as const) {
+      const value = filters[key];
+      if (typeof value === "string" && value) params.set(key, value);
+    }
+    setAdAccountParams(params, splitAdAccountIds(filters.adAccountId));
+    if (filters.campaignId) params.set("campaignIds", filters.campaignId);
+    const query = params.toString();
+    const report = await serverApiFetch<unknown>(
+      query ? `/reports/optimization?${query}` : "/reports/optimization",
+    );
+
+    return isOptimizationReport(report)
+      ? { report, error: null }
+      : { report: null, error: "Resposta inesperada da API." };
+  } catch (error) {
+    return {
+      report: null,
+      error: error instanceof Error ? error.message : "API indisponível.",
+    };
+  }
 }
 
 async function getCampaignReports(
@@ -893,7 +922,7 @@ function reportView(value?: string): ReportView {
 }
 
 function reportMode(value?: string): ReportMode {
-  return value === "insights" ? value : "table";
+  return value === "insights" || value === "metrics" ? value : "table";
 }
 
 function reportMetricGroup(value?: string): ReportMetricGroup {
@@ -1050,6 +1079,10 @@ function applyReportUiParams(
     params.set("metrics", filters.metrics);
   }
 
+  if (filters.mode === "metrics") {
+    params.set("mode", filters.mode);
+  }
+
   if (filters.mode === "insights") {
     params.set("mode", filters.mode);
 
@@ -1180,6 +1213,10 @@ function ReportModeHiddenInputs({
   mode: ReportMode;
   objective: ReportInsightObjective;
 }) {
+  if (mode === "metrics") {
+    return <input type="hidden" name="mode" value={mode} />;
+  }
+
   if (mode !== "insights") {
     return null;
   }
@@ -2566,6 +2603,7 @@ export default async function ReportsPage({
     whatsappInstances,
     metaStructure,
     adAccountCurrencies,
+    optimizationReport,
   ] = await Promise.all([
     showTable && activeView === "campaigns"
       ? getCampaignReports(requestedReportFilters)
@@ -2576,9 +2614,9 @@ export default async function ReportsPage({
     showTable && activeView === "ads"
       ? getAdReports(requestedReportFilters)
       : Promise.resolve(null),
-    showTable
-      ? Promise.resolve(null)
-      : getReportInsights(activeView, requestedReportFilters, insightObjective),
+    activeMode === "insights"
+      ? getReportInsights(activeView, requestedReportFilters, insightObjective)
+      : Promise.resolve(null),
     getCurrentWorkspaceResource(),
     hasComparison
       ? getCampaignReports({
@@ -2594,6 +2632,9 @@ export default async function ReportsPage({
     getWhatsappInstances(),
     shouldLoadMetaStructure ? getMetaStructureReport() : Promise.resolve(null),
     getAdAccountCurrencies(),
+    activeMode === "metrics"
+      ? getOptimizationReport(requestedReportFilters)
+      : Promise.resolve(null),
   ]);
   const accountCurrencies = adAccountCurrencyMap(
     (metaAssets?.reportingAccounts ?? []).filter((account) => account.active),
@@ -2633,7 +2674,7 @@ export default async function ReportsPage({
     pageSize: String(pageSize),
     metrics: activeMetricGroup,
     view: activeView,
-    mode: activeMode === "insights" ? activeMode : "",
+    mode: activeMode === "table" ? "" : activeMode,
     objective: activeMode === "insights" ? insightObjective : "",
     sort: sort?.key ?? "",
     dir: sort?.direction ?? "",
@@ -2680,7 +2721,7 @@ export default async function ReportsPage({
     campaignReports?.state ??
     adSetReports?.state ??
     adReports?.state ??
-    (insightReports?.report ? "real" : "error");
+    (insightReports?.report || optimizationReport?.report ? "real" : "error");
   const rangeLabel =
     campaignReports?.report.rangeLabel ??
     adSetReports?.report.rangeLabel ??
@@ -2786,7 +2827,13 @@ export default async function ReportsPage({
     ? "Permissões indisponíveis"
     : "Sem permissão para revisar";
   const reportTitle = (
-    showTable
+    activeMode === "metrics"
+      ? {
+          ads: "Métricas de otimização",
+          adsets: "Métricas de otimização",
+          campaigns: "Métricas de otimização",
+        }
+      : showTable
       ? {
           ads: "Performance por anúncio",
           adsets: "Performance por conjunto",
@@ -2887,6 +2934,7 @@ export default async function ReportsPage({
             [
               ["table", "Tabela"],
               ["insights", "Insights"],
+              ["metrics", "Métricas"],
             ] as const
           ).map(([mode, label]) => (
             <Link
@@ -3169,6 +3217,23 @@ export default async function ReportsPage({
             Limpar seleção
           </Link>
         </div>
+      ) : null}
+
+      {activeMode === "metrics" ? (
+        optimizationReport?.report ? (
+          <OptimizationTable
+            key={`${activeView}:${optimizationReport.report.since}:${optimizationReport.report.until}`}
+            report={optimizationReport.report}
+            initialLevel={
+              activeView === "ads" ? "ad" : activeView === "adsets" ? "adset" : "campaign"
+            }
+          />
+        ) : (
+          <section className="surface-panel optimization-panel" role="status">
+            <strong>Métricas indisponíveis</strong>
+            <p>{optimizationReport?.error ?? "Tente novamente em instantes."}</p>
+          </section>
+        )
       ) : null}
 
       {insightReports ? (
