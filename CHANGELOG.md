@@ -27,7 +27,7 @@ Upgrade notes for students: [`docs/releases/unreleased.json`](docs/releases/unre
   identifier coverage. Server tag template and guide:
   [`docs/setup/gtm-server-side.md`](docs/setup/gtm-server-side.md).
 - **WhatsApp click token and website Lead**: a GTM Web tag adds
-  `Ref.: CV-XXXXXX` to every WhatsApp link and sends it as `ref_token`; the
+  `_Atendimento: CV-XXXXXX_` to every WhatsApp link and sends it as `ref_token`; the
   sGTM tag also forwards IP and user agent. Official WhatsApp (`meta_cloud`)
   messages carrying the token are linked to the click
   (`TrackingContactMatch`, one per token) and an outbox worker sends a Meta

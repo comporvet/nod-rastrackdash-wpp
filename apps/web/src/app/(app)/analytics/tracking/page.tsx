@@ -211,7 +211,7 @@ export default async function TrackingMonitorPage({ searchParams }: { searchPara
               <span className="eyebrow">WhatsApp oficial</span>
               <h2>Contatos ligados a um clique</h2>
               <p>
-                Mensagens recebidas pela API oficial com o token Ref.: CV-XXXXXX do clique no site ou na LP. Cada token gera
+                Mensagens recebidas pela API oficial com o código _Atendimento: CV-XXXXXX_ do clique no site ou na LP. Cada token gera
                 no máximo um Lead de site na Meta.
               </p>
             </header>

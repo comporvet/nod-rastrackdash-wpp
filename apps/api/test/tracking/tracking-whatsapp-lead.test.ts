@@ -29,7 +29,7 @@ function inboundEvent(overrides: Record<string, any> = {}) {
       direction: "inbound",
       authorType: "contact",
       messageType: "text",
-      text: "Olá! Gostaria de informações.\n\nRef.: CV-A7K9M2",
+      text: "Olá! Gostaria de informações.\n\n_Atendimento: CV-A7K9M2_",
       isPrivate: false,
     },
     ...overrides,
@@ -57,7 +57,10 @@ function click(overrides: Record<string, any> = {}) {
 
 describe("token de referência", () => {
   it("extrai o token do texto, sem diferenciar maiúsculas", () => {
+    expect(extractRefToken("Olá\n\n_Atendimento: CV-A7K9M2_")).toBe("CV-A7K9M2");
     expect(extractRefToken("Olá\n\nRef.: CV-A7K9M2")).toBe("CV-A7K9M2");
+    expect(extractRefToken("XCV-A7K9M2")).toBeNull();
+    expect(extractRefToken("CV-A7K9M2B")).toBeNull();
     expect(extractRefToken("ref: cv-a7k9m2 obrigado")).toBe("CV-A7K9M2");
     expect(extractRefToken("CV-A7K9M")).toBeNull();
     expect(extractRefToken("CV-A7K9M0")).toBeNull();

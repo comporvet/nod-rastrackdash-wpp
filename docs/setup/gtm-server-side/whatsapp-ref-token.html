@@ -11,7 +11,7 @@
   var STORAGE_KEY = 'rtd_ref';
   var ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   var DEFAULT_TEXT = 'Olá! Gostaria de informações sobre a consulta comportamental.';
-  var TOKEN_PATTERN = /\bCV-[A-HJ-NP-Z2-9]{6}\b/i;
+  var TOKEN_PATTERN = /(^|[^A-Za-z0-9])CV-[A-HJ-NP-Z2-9]{6}(?![A-Za-z0-9])/i;
 
   function randomToken() {
     var bytes = new Uint8Array(6);
@@ -61,7 +61,7 @@
     }
     if (text && TOKEN_PATTERN.test(text)) return href;
     var message = (text && text.replace(/\s+$/, '')) || DEFAULT_TEXT;
-    kept.push('text=' + encodeURIComponent(message + '\n\nRef.: ' + token));
+    kept.push('text=' + encodeURIComponent(message + '\n\n_Atendimento: ' + token + '_'));
     return path + '?' + kept.join('&') + hash;
   }
 

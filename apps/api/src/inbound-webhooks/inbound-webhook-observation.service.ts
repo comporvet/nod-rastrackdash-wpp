@@ -305,8 +305,8 @@ export class InboundWebhookObservationService {
 
     await this.recordDiagnostic(delivery, "processed", result);
 
-    // Official WhatsApp only: a message carrying a site click token (Ref.:
-    // CV-XXXXXX) links the phone to that click for the website Lead.
+    // Official WhatsApp only: a message carrying a site click token (_Atendimento:
+    // CV-XXXXXX_) links the phone to that click for the website Lead.
     if (delivery.connection.provider === "meta_cloud" && this.trackingContacts) {
       await this.trackingContacts.recordInboundMessages(delivery.workspaceId, result.events);
     }

@@ -8,7 +8,8 @@ import {
 } from "../common/phone/phone-identity";
 import type { ParsedInboundWebhookEvent } from "../inbound-webhooks/providers/inbound-webhook-parser";
 
-const TOKEN_IN_TEXT = /\bCV-([A-HJ-NP-Z2-9]{6})\b/i;
+// No \b: WhatsApp italics wrap the token in "_", which \b treats as a word character.
+const TOKEN_IN_TEXT = /(?<![A-Za-z0-9])CV-([A-HJ-NP-Z2-9]{6})(?![A-Za-z0-9])/i;
 
 export function extractRefToken(text: string | null | undefined): string | null {
   const match = text ? TOKEN_IN_TEXT.exec(text) : null;
