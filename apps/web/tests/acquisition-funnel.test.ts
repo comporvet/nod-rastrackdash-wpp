@@ -25,6 +25,23 @@ describe("funil de aquisição", () => {
     expect(trapezoid(rows, 0, 14).split(" ")).toHaveLength(4);
   });
 
+  it("quem entra no meio soma no total da etapa, mas o desenho nunca alarga", () => {
+    const rows = funnelRows({
+      spendCents: null,
+      stages: [
+        stage("ad_clicks", 0),
+        { ...stage("visits", 0), entered: [{ label: "Busca orgânica", value: 14 }] },
+        stage("whatsapp_clicks", 3),
+      ],
+    });
+    expect(rows[1]!.total).toBe(14);
+    expect(rows[1]!.enteredTotal).toBe(14);
+    expect(rows[1]!.width).toBeLessThanOrEqual(rows[0]!.width);
+    expect(rows[2]!.fromPrevious).toBeCloseTo(3 / 14);
+    expect(rows[2]!.previousTotal).toBe(14);
+    expect(rows[2]!.width).toBeLessThanOrEqual(rows[1]!.width);
+  });
+
   it("valida a resposta da API e formata percentuais", () => {
     expect(isFunnelData({ stages: [], filters: {} })).toBe(true);
     expect(isFunnelData({ businesses: [] })).toBe(false);

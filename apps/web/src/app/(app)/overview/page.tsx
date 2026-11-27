@@ -711,7 +711,7 @@ export default async function OverviewPage({
     getLeadSubmittedOverrideEnabled(),
     getAcquisitionFunnel(filters, {
       group: asStringParam(resolvedSearchParams[FUNNEL_PARAM.group]),
-      channel: asStringParam(resolvedSearchParams[FUNNEL_PARAM.channel]),
+      channel: [resolvedSearchParams[FUNNEL_PARAM.channel] ?? []].flat().join(",") || undefined,
       entry: asStringParam(resolvedSearchParams[FUNNEL_PARAM.entry]),
     }),
   ]);

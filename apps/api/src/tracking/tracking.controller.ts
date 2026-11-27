@@ -73,7 +73,7 @@ export class TrackingController {
       since: single(since),
       until: single(until),
       group: single(group),
-      channel: single(channel),
+      channel: Array.isArray(channel) ? channel.join(",") : channel,
       entry: single(entry),
       campaignIds: Array.isArray(campaignIds) ? campaignIds.join(",") : campaignIds,
     });

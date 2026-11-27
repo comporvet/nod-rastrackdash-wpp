@@ -4,12 +4,13 @@ export type FunnelStage = {
   value: number | null;
   note: string | null;
   breakdown: { label: string; value: number }[];
+  entered?: { label: string; value: number }[];
 };
 
 export type AcquisitionFunnelData = {
   since: string;
   until: string;
-  filters: { group: string; channel: string; entry: string; campaignIds: string[] };
+  filters: { group: string; channels: string[]; entry: string; campaignIds: string[] };
   spendCents: number | null;
   lookbackDays: number;
   sources: { customers: string; appointments: string };
@@ -25,7 +26,6 @@ export const groupOptions = [
 ];
 
 export const channelOptions = [
-  { value: "all", label: "Todos os canais" },
   { value: "google_ads", label: "Google Ads" },
   { value: "meta_ads", label: "Meta Ads (site/LP)" },
   { value: "meta_ctwa", label: "Meta Ads (Click-to-WhatsApp)" },
@@ -60,7 +60,12 @@ export function isFunnelData(value: unknown): value is AcquisitionFunnelData {
 export type FunnelRow = FunnelStage & {
   /** 0..1 width for the funnel shape (log scale so 10k impressions and 3 customers both show). */
   width: number;
+  /** People at this stage: the ones from the stage above plus the ones who entered here. */
+  total: number | null;
+  enteredTotal: number;
+  /** Share of the previous stage's people that reached this stage. */
   fromPrevious: number | null;
+  previousTotal: number | null;
   fromTop: number | null;
   costCents: number | null;
 };
@@ -68,24 +73,36 @@ export type FunnelRow = FunnelStage & {
 const MIN_WIDTH = 0.22;
 
 export function funnelRows(data: Pick<AcquisitionFunnelData, "stages" | "spendCents">): FunnelRow[] {
-  const values = data.stages.map((stage) => stage.value).filter((value): value is number => value !== null);
-  const max = Math.max(1, ...values);
-  const top = data.stages.find((stage) => stage.value !== null && stage.value > 0)?.value ?? null;
+  const totals = data.stages.map((stage) =>
+    stage.value === null ? null : stage.value + (stage.entered ?? []).reduce((sum, item) => sum + item.value, 0),
+  );
+  const max = Math.max(1, ...totals.filter((value): value is number => value !== null));
+  const top = totals.find((value) => value !== null && value > 0) ?? null;
   let previous: number | null = null;
+  let previousWidth = 1;
   return data.stages.map((stage, index) => {
     const value = stage.value;
-    const width =
-      value === null || value <= 0
+    const total = totals[index] ?? null;
+    const enteredTotal = total !== null && value !== null ? total - value : 0;
+    const raw =
+      total === null || total <= 0
         ? MIN_WIDTH
-        : MIN_WIDTH + (1 - MIN_WIDTH) * (Math.log10(value + 1) / Math.log10(max + 1));
+        : MIN_WIDTH + (1 - MIN_WIDTH) * (Math.log10(total + 1) / Math.log10(max + 1));
+    // Always a funnel: people entering mid-way are shown beside the stage, never as a wider band.
+    const width = Math.min(raw, previousWidth);
     const fromPrevious = value !== null && previous !== null && previous > 0 ? value / previous : null;
-    const fromTop = value !== null && top !== null && top > 0 && index > 0 ? value / top : null;
+    // Share of the top stage (100%): paid traffic starts at impressions, organic at page visits.
+    const fromTop = value !== null && top !== null && top > 0 ? value / top : null;
     const costCents =
-      data.spendCents !== null && data.spendCents > 0 && value !== null && value > 0 && stage.key !== "impressions"
-        ? Math.round(data.spendCents / value)
+      data.spendCents !== null && data.spendCents > 0 && total !== null && total > 0 && stage.key !== "impressions"
+        ? Math.round(data.spendCents / total)
         : null;
-    if (value !== null) previous = value;
-    return { ...stage, width, fromPrevious, fromTop, costCents };
+    const previousTotal = previous;
+    if (total !== null) {
+      previous = total;
+      previousWidth = width;
+    }
+    return { ...stage, width, total, enteredTotal, fromPrevious, previousTotal, fromTop, costCents };
   });
 }
 

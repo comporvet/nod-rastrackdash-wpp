@@ -21,9 +21,12 @@ export const FUNNEL_CHANNELS = [
 ] as const;
 export const FUNNEL_ENTRIES = ["all", "site", "lp_online", "lp_presencial", "ctwa", "whatsapp_direct"] as const;
 
+export type FunnelChannel = Exclude<(typeof FUNNEL_CHANNELS)[number], "all">;
+
 export type FunnelFilters = {
   group: (typeof FUNNEL_GROUPS)[number];
-  channel: (typeof FUNNEL_CHANNELS)[number];
+  /** Empty = every channel. */
+  channels: FunnelChannel[];
   entry: (typeof FUNNEL_ENTRIES)[number];
   campaignIds: string[];
 };
@@ -43,7 +46,24 @@ export type FunnelStage = {
   value: number | null;
   note: string | null;
   breakdown: { label: string; value: number }[];
+  /** People counted at this stage who did not come through the stage above (organic visit, CTWA, direct WhatsApp...). */
+  entered: { label: string; value: number }[];
 };
+
+const VISIT_CHANNEL_LABEL: Record<string, string> = {
+  organic_search: "Busca orgânica",
+  organic_social: "Redes sociais",
+  referral: "Outros sites",
+  direct: "Acesso direto",
+  other: "Outras origens",
+  unknown: "Sem dados da visita",
+};
+
+function countBy<T>(items: T[], labelOf: (item: T) => string): { label: string; value: number }[] {
+  const counts = new Map<string, number>();
+  for (const item of items) counts.set(labelOf(item), (counts.get(labelOf(item)) ?? 0) + 1);
+  return [...counts.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+}
 
 const SITE_ENTRIES = new Set(["site", "lp_online", "lp_presencial"]);
 const PAID_CHANNELS = new Set(["google_ads", "meta_ads", "meta_ctwa"]);
@@ -63,7 +83,15 @@ export function parseFunnelFilters(query: {
 }): FunnelFilters {
   return {
     group: pick(query.group, FUNNEL_GROUPS, "group"),
-    channel: pick(query.channel, FUNNEL_CHANNELS, "channel"),
+    channels: [
+      ...new Set(
+        (query.channel ?? "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter((value) => value && value !== "all")
+          .map((value) => pick(value, FUNNEL_CHANNELS, "channel") as FunnelChannel),
+      ),
+    ],
     entry: pick(query.entry, FUNNEL_ENTRIES, "entry"),
     campaignIds: (query.campaignIds ?? "")
       .split(",")
@@ -87,25 +115,25 @@ export function passes(
   item: { channel: string; entry: string; campaigns: (string | null)[] },
 ): boolean {
   if (filters.group !== "all" && groupOfChannel(item.channel) !== filters.group) return false;
-  if (filters.channel !== "all" && item.channel !== filters.channel) return false;
+  if (filters.channels.length && !filters.channels.includes(item.channel as FunnelChannel)) return false;
   if (filters.entry !== "all" && item.entry !== filters.entry) return false;
   if (filters.campaignIds.length && !item.campaigns.some((id) => id && filters.campaignIds.includes(id))) return false;
   return true;
 }
 
 /** Meta ad metrics only make sense for paid Meta traffic and cannot be split by page. */
+export function channelSelected(filters: FunnelFilters, ...channels: FunnelChannel[]): boolean {
+  return filters.channels.length === 0 || channels.some((channel) => filters.channels.includes(channel));
+}
+
 export function metaAdsApply(filters: FunnelFilters): boolean {
-  return (
-    filters.group !== "organic" &&
-    (filters.channel === "all" || filters.channel === "meta_ads" || filters.channel === "meta_ctwa") &&
-    filters.entry === "all"
-  );
+  return filters.group !== "organic" && channelSelected(filters, "meta_ads", "meta_ctwa") && filters.entry === "all";
 }
 
 export function googleAdsApply(filters: FunnelFilters): boolean {
   return (
     filters.group !== "organic" &&
-    (filters.channel === "all" || filters.channel === "google_ads") &&
+    channelSelected(filters, "google_ads") &&
     filters.campaignIds.length === 0 &&
     (filters.entry === "all" || SITE_ENTRIES.has(filters.entry))
   );
@@ -177,15 +205,17 @@ export class AcquisitionFunnelService {
     const metaApplies = metaAdsApply(filters);
     const googleApplies = googleAdsApply(filters);
     const visitorsApply = filters.entry === "all" || SITE_ENTRIES.has(filters.entry);
-    const visitorChannelApplies = !["meta_ctwa", "whatsapp_direct"].includes(filters.channel);
+    const visitorChannelApplies =
+      filters.channels.length === 0 ||
+      filters.channels.some((channel) => channel !== "meta_ctwa" && channel !== "whatsapp_direct");
     const filteredVisitors = visitorsApply && visitorChannelApplies
       ? visitors.filter((visitor) =>
           passes({ ...filters, entry: "all" }, { channel: visitor.channel, entry: "site", campaigns: visitor.campaigns }),
         )
       : [];
-    const visitCount = filteredVisitors.filter((visitor) =>
+    const visited = filteredVisitors.filter((visitor) =>
       filters.entry === "all" ? visitor.visitEntries.size > 0 : visitor.visitEntries.has(filters.entry),
-    ).length;
+    );
     const clickCount = filteredVisitors.filter((visitor) =>
       filters.entry === "all" ? visitor.clickEntries.size > 0 : visitor.clickEntries.has(filters.entry),
     ).length;
@@ -204,6 +234,22 @@ export class AcquisitionFunnelService {
       metaApplies || googleApplies
         ? (metaApplies ? meta.linkClicks : 0) + (googleApplies ? adSessions : 0)
         : null;
+    const sitePath = visitorsApply && visitorChannelApplies;
+    // Visitors whose first touch was not an ad entered the funnel at the visit stage.
+    const visitsFromAds = adClicksValue !== null ? visited.filter((visitor) => groupOfChannel(visitor.channel) === "paid") : visited;
+    const visitsEntered = adClicksValue !== null ? visited.filter((visitor) => groupOfChannel(visitor.channel) !== "paid") : [];
+    // Conversations: code-linked leads come from the WhatsApp click; CTWA comes straight from the ad click.
+    const isSiteLead = (lead: CollectedLead) => SITE_ENTRIES.has(lead.entry) || lead.entry === "unknown_page";
+    const conversationsCarried = sitePath
+      ? filteredLeads.filter(isSiteLead)
+      : adClicksValue !== null
+        ? filteredLeads.filter((lead) => lead.entry === "ctwa")
+        : filteredLeads;
+    const carriedSet = new Set(conversationsCarried);
+    const conversationsEntered = filteredLeads.filter((lead) => !carriedSet.has(lead));
+    const scheduledSet = new Set(scheduled);
+    const customersCarried = appointments.status === "ok" ? split.fresh.filter((lead) => scheduledSet.has(lead)) : split.fresh;
+    const customersEntered = appointments.status === "ok" ? split.fresh.filter((lead) => !scheduledSet.has(lead)) : [];
     const stages: FunnelStage[] = [
       {
         key: "impressions",
@@ -213,10 +259,11 @@ export class AcquisitionFunnelService {
           ? "Meta Ads. Google Ads ainda sem integração."
           : filters.group === "organic"
             ? "Não se aplica a tráfego orgânico."
-            : filters.channel === "google_ads"
+            : !channelSelected(filters, "meta_ads", "meta_ctwa")
               ? "Google Ads ainda sem integração."
               : "A Meta não separa impressões por página.",
         breakdown: metaApplies ? [{ label: "Meta Ads", value: meta.impressions }] : [],
+        entered: [],
       },
       {
         key: "ad_clicks",
@@ -232,13 +279,19 @@ export class AcquisitionFunnelService {
           ...(metaApplies ? [{ label: "Meta Ads (cliques no link)", value: meta.linkClicks }] : []),
           ...(googleApplies ? [{ label: "Google Ads (visitas com gclid)", value: adSessions }] : []),
         ],
+        entered: [],
       },
       {
         key: "visits",
-        label: "Visitaram o site/LP",
-        value: visitorsApply && visitorChannelApplies ? visitCount : null,
-        note: visitorsApply && visitorChannelApplies ? "Navegadores únicos com visualização de página." : "Este filtro não passa pelo site/LP.",
+        label: "Visitaram página",
+        value: sitePath ? visitsFromAds.length : null,
+        note: sitePath
+          ? adClicksValue !== null
+            ? "Navegadores únicos cuja primeira visita veio de um anúncio."
+            : "Navegadores únicos com visualização de página."
+          : "Este filtro não passa pelo site/LP.",
         breakdown: [],
+        entered: sitePath ? countBy(visitsEntered, (visitor) => VISIT_CHANNEL_LABEL[visitor.channel] ?? "Outras origens") : [],
       },
       {
         key: "whatsapp_clicks",
@@ -246,22 +299,26 @@ export class AcquisitionFunnelService {
         value: visitorsApply && visitorChannelApplies ? clickCount : null,
         note: visitorsApply && visitorChannelApplies ? "Navegadores únicos com clique no botão do WhatsApp." : "Este filtro não passa pelo site/LP.",
         breakdown: [],
+        entered: [],
       },
       {
         key: "conversations",
         label: "Enviaram mensagem no WhatsApp",
-        value: filteredLeads.length,
-        note: metaApplies
-          ? `A Meta informou ${meta.conversations.toLocaleString("pt-BR")} conversas iniciadas pelos anúncios no período.`
-          : "Conversas reais recebidas: anúncio CTWA, código Atendimento ou WhatsApp direto.",
-        breakdown: [
-          { label: "Anúncio Click-to-WhatsApp", value: filteredLeads.filter((lead) => lead.entry === "ctwa").length },
-          {
-            label: "Site/LP (código Atendimento)",
-            value: filteredLeads.filter((lead) => SITE_ENTRIES.has(lead.entry) || lead.entry === "unknown_page").length,
-          },
-          { label: "WhatsApp direto", value: filteredLeads.filter((lead) => lead.entry === "whatsapp_direct").length },
-        ].filter((item) => item.value > 0),
+        value: conversationsCarried.length,
+        note: [
+          sitePath
+            ? "Conversas com o código Atendimento do site/LP."
+            : adClicksValue !== null
+              ? "Conversas vindas do anúncio Click-to-WhatsApp."
+              : "Conversas reais recebidas no WhatsApp oficial.",
+          metaApplies ? `A Meta informou ${meta.conversations.toLocaleString("pt-BR")} conversas iniciadas pelos anúncios.` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        breakdown: [],
+        entered: countBy(conversationsEntered, (lead) =>
+          lead.entry === "ctwa" ? "Anúncio Click-to-WhatsApp" : lead.entry === "whatsapp_direct" ? "WhatsApp direto" : "Site/LP",
+        ),
       },
       {
         key: "scheduled",
@@ -269,11 +326,12 @@ export class AcquisitionFunnelService {
         value: appointments.status === "ok" ? scheduled.length : null,
         note: sourceNote(appointments.status, "agendamentos (tabela Rastrack_Agendamentos)"),
         breakdown: [],
+        entered: [],
       },
       {
         key: "customers",
         label: "Tornaram-se clientes",
-        value: customers.status === "ok" ? split.fresh.length : null,
+        value: customers.status === "ok" ? customersCarried.length : null,
         note:
           customers.status === "ok"
             ? split.existing.length
@@ -281,6 +339,7 @@ export class AcquisitionFunnelService {
               : "Primeira compra após o contato."
             : sourceNote(customers.status, "clientes (tabela Clientes)"),
         breakdown: [],
+        entered: customersEntered.length ? [{ label: "Compraram sem agendamento registrado", value: customersEntered.length }] : [],
       },
     ];
 

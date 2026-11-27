@@ -50,7 +50,9 @@ describe("dados da Comporvet", () => {
 
 describe("filtros do funil", () => {
   it("valida os valores e as campanhas", () => {
-    expect(parseFunnelFilters({})).toEqual({ group: "all", channel: "all", entry: "all", campaignIds: [] });
+    expect(parseFunnelFilters({})).toEqual({ group: "all", channels: [], entry: "all", campaignIds: [] });
+    expect(parseFunnelFilters({ channel: "google_ads,meta_ctwa,google_ads" }).channels).toEqual(["google_ads", "meta_ctwa"]);
+    expect(() => parseFunnelFilters({ channel: "google_ads,x" })).toThrow();
     expect(parseFunnelFilters({ campaignIds: "123, 456,bad id" }).campaignIds).toEqual(["123", "456"]);
     expect(() => parseFunnelFilters({ group: "x" })).toThrow();
   });
@@ -69,6 +71,10 @@ describe("filtros do funil", () => {
     expect(metaAdsApply(parseFunnelFilters({}))).toBe(true);
     expect(metaAdsApply(parseFunnelFilters({ group: "organic" }))).toBe(false);
     expect(metaAdsApply(parseFunnelFilters({ channel: "google_ads" }))).toBe(false);
+    expect(metaAdsApply(parseFunnelFilters({ channel: "google_ads,meta_ctwa" }))).toBe(true);
+    const several = parseFunnelFilters({ channel: "google_ads,organic_search" });
+    expect(passes(several, { channel: "organic_search", entry: "site", campaigns: [] })).toBe(true);
+    expect(passes(several, { channel: "direct", entry: "site", campaigns: [] })).toBe(false);
     expect(metaAdsApply(parseFunnelFilters({ entry: "site" }))).toBe(false);
     expect(googleAdsApply(parseFunnelFilters({ entry: "lp_presencial" }))).toBe(true);
     expect(googleAdsApply(parseFunnelFilters({ entry: "ctwa" }))).toBe(false);
@@ -159,25 +165,36 @@ describe("funil completo", () => {
     return new AcquisitionFunnelService(prisma as any, origins as any, comporvet as any);
   }
 
-  it("monta as sete etapas para todo o tráfego", async () => {
+  it("cada etapa conta quem veio da anterior e separa quem entrou no meio", async () => {
     const result = await service().funnel("ws_1", { since: "2026-11-27", until: "2026-11-27" });
     const values = Object.fromEntries(result.stages.map((stage) => [stage.key, stage.value]));
     expect(values).toEqual({
       impressions: 10_000,
       ad_clicks: 301,
-      visits: 2,
+      visits: 1,
       whatsapp_clicks: 1,
-      conversations: 3,
+      conversations: 1,
       scheduled: 1,
       customers: 1,
     });
+    const entered = Object.fromEntries(result.stages.map((stage) => [stage.key, stage.entered]));
+    expect(entered.visits).toEqual([{ label: "Busca orgânica", value: 1 }]);
+    expect(entered.conversations).toEqual(
+      expect.arrayContaining([
+        { label: "Anúncio Click-to-WhatsApp", value: 1 },
+        { label: "WhatsApp direto", value: 1 },
+      ]),
+    );
+    expect(entered.customers).toEqual([]);
     expect(result.spendCents).toBe(50_000);
   });
 
   it("orgânico não tem impressões nem cliques de anúncio", async () => {
     const result = await service().funnel("ws_1", { since: "2026-11-27", until: "2026-11-27", group: "organic" });
     const values = Object.fromEntries(result.stages.map((stage) => [stage.key, stage.value]));
-    expect(values).toMatchObject({ impressions: null, ad_clicks: null, visits: 1, whatsapp_clicks: 0, conversations: 1 });
+    expect(values).toMatchObject({ impressions: null, ad_clicks: null, visits: 1, whatsapp_clicks: 0, conversations: 0 });
+    const conversations = result.stages.find((stage) => stage.key === "conversations")!;
+    expect(conversations.entered).toEqual([{ label: "WhatsApp direto", value: 1 }]);
     expect(result.spendCents).toBeNull();
   });
 

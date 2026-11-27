@@ -1540,7 +1540,16 @@ export class MetaReportingService {
           until,
         ) && this.dailyConversationsMatchAggregate(aggregate, rows, id);
 
+      // Rows stored before reach/link clicks/video/page views were read have
+      // impressions but no reach: re-read the full window once to fill them.
+      const deliveryIncomplete = [
+        ...stored.campaigns,
+        ...stored.adSets,
+        ...stored.ads,
+      ].some((row) => row.impressions > 0 && row.reach === 0);
+
       verified =
+        !deliveryIncomplete &&
         matches<{
           spendCents: number;
           metaConversationsStarted: number;
@@ -1673,16 +1682,22 @@ export class MetaReportingService {
       campaignId: string;
       spendCents: number;
       metaConversationsStarted: number;
+      impressions: number;
+      reach: number;
     }>;
     adSets: Array<{
       adSetId: string;
       spendCents: number;
       metaConversationsStarted: number;
+      impressions: number;
+      reach: number;
     }>;
     ads: Array<{
       adId: string;
       spendCents: number;
       metaConversationsStarted: number;
+      impressions: number;
+      reach: number;
     }>;
   }> {
     const where = {
@@ -1697,12 +1712,16 @@ export class MetaReportingService {
           campaignId: true,
           spendCents: true,
           metaConversationsStarted: true,
+          impressions: true,
+          reach: true,
         },
       }) as Promise<
         Array<{
           campaignId: string;
           spendCents: number;
           metaConversationsStarted: number;
+          impressions: number;
+          reach: number;
         }>
       >,
       this.prisma.metaAdSetDailyInsight.findMany({
@@ -1711,12 +1730,16 @@ export class MetaReportingService {
           adSetId: true,
           spendCents: true,
           metaConversationsStarted: true,
+          impressions: true,
+          reach: true,
         },
       }) as Promise<
         Array<{
           adSetId: string;
           spendCents: number;
           metaConversationsStarted: number;
+          impressions: number;
+          reach: number;
         }>
       >,
       this.prisma.metaAdDailyInsight.findMany({
@@ -1725,12 +1748,16 @@ export class MetaReportingService {
           adId: true,
           spendCents: true,
           metaConversationsStarted: true,
+          impressions: true,
+          reach: true,
         },
       }) as Promise<
         Array<{
           adId: string;
           spendCents: number;
           metaConversationsStarted: number;
+          impressions: number;
+          reach: number;
         }>
       >,
     ]);

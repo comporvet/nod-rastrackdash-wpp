@@ -24,7 +24,7 @@ export function AcquisitionFunnel({
   hiddenParams: Record<string, string>;
 }) {
   const rows = data ? funnelRows(data) : [];
-  const filters = data?.filters ?? { group: "all", channel: "all", entry: "all", campaignIds: [] };
+  const filters = data?.filters ?? { group: "all", channels: [], entry: "all", campaignIds: [] };
   const height = Math.max(1, rows.length) * STAGE_HEIGHT;
 
   return (
@@ -44,9 +44,9 @@ export function AcquisitionFunnel({
         hiddenParams={hiddenParams}
         selects={[
           { name: FUNNEL_PARAM.group, label: "Tráfego", value: filters.group, options: groupOptions },
-          { name: FUNNEL_PARAM.channel, label: "Canal", value: filters.channel, options: channelOptions },
           { name: FUNNEL_PARAM.entry, label: "Entrada", value: filters.entry, options: entryOptions },
         ]}
+        multi={{ name: FUNNEL_PARAM.channel, label: "Canais", values: filters.channels ?? [], options: channelOptions }}
       />
 
       {error || !data ? (
@@ -84,18 +84,30 @@ export function AcquisitionFunnel({
                   {row.breakdown.length > 1 ? (
                     <small>{row.breakdown.map((item) => `${item.label}: ${integer(item.value)}`).join(" · ")}</small>
                   ) : null}
+                  {row.enteredTotal > 0 ? (
+                    <small className="acquisition-funnel-entered">
+                      + {integer(row.enteredTotal)} entraram aqui por outro caminho:{" "}
+                      {(row.entered ?? []).map((item) => `${item.label} ${integer(item.value)}`).join(" · ")}
+                    </small>
+                  ) : null}
                   {row.note ? <small>{row.note}</small> : null}
                 </div>
                 <div className="acquisition-funnel-value">
                   <strong>{integer(row.value)}</strong>
+                  <span className="acquisition-funnel-share">
+                    {row.fromTop === null ? "—" : percent(row.fromTop)}
+                  </span>
                   <small>
-                    {index === 0
-                      ? "Topo do funil"
-                      : row.fromPrevious === null
-                        ? "—"
-                        : `${percent(row.fromPrevious)} da etapa anterior`}
+                    {row.value === null
+                      ? "Não se aplica"
+                      : row.previousTotal === null
+                        ? "Topo do funil"
+                        : row.fromPrevious === null
+                          ? "—"
+                          : `${percent(row.fromPrevious)} dos ${integer(row.previousTotal)} da etapa anterior`}
                   </small>
-                  {row.costCents !== null ? <small>{brl(row.costCents)} por {row.label.toLowerCase()}</small> : null}
+                  {row.enteredTotal > 0 ? <small>{integer(row.total)} no total da etapa</small> : null}
+                  {row.costCents !== null ? <small>{brl(row.costCents)} por pessoa nesta etapa</small> : null}
                 </div>
               </li>
             ))}
