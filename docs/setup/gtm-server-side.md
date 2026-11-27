@@ -138,9 +138,11 @@ O Lead de site leva `external_id` = SHA-256 (hex) do `client_id` do GA4. Se as t
 
 1. No sGTM, **Modelos → Modelos de variável → Novo → ⋮ → Importar** e escolha [`gtm-server-side/rastrackdash-external-id-variable.tpl`](gtm-server-side/rastrackdash-external-id-variable.tpl). Salve.
 2. **Variáveis → Nova**, tipo **RastrackDash - External ID**, nome `RastrackDash External ID`.
-3. Nas tags `02 - [META CAPI] PageView` e `02 - [META CAPI] Contact - WhatsApp`, no bloco de dados do usuário (User Data), preencha **External ID** com `{{RastrackDash External ID}}`.
-   - O valor já sai com hash (64 caracteres hexadecimais). Se a tag tiver opção de aplicar hash, ela não deve aplicar de novo; a maioria dos modelos reconhece valores já com hash.
-4. No Preview do sGTM, abra a requisição enviada à Meta (aba **Solicitação** → solicitações HTTP de saída para `graph.facebook.com`) e confira que `user_data.external_id` é um texto de 64 caracteres hexadecimais, igual ao valor da variável na aba **Variáveis**.
+3. As tags da Meta usam o modelo oficial **Conversions API Tag (facebookincubator)**, que não tem campo de dados do usuário: ele lê a chave `x-fb-ud-external_id` do Event Data. Crie em **Transformações → Nova**:
+   - nome `02 - [META CAPI] external_id RastrackDash`, tipo **Aumentar evento**;
+   - parâmetro `x-fb-ud-external_id` = `{{RastrackDash External ID}}`, sem condição;
+   - tags afetadas: só `02 - [META CAPI] PageView` e `02 - [META CAPI] Contact - WhatsApp`.
+4. No Preview do sGTM, compare o valor da variável (aba **Variáveis**) com `user_data.external_id` da requisição de saída para `graph.facebook.com` (aba **Solicitação**). Devem ser idênticos: o modelo não aplica outro hash a um valor de 64 caracteres hexadecimais (verificado em 26/11/2026).
 
 Não muda o `event_id` nem a deduplicação Pixel/CAPI.
 
