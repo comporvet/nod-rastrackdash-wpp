@@ -132,6 +132,18 @@ O Lead é separado do `Contact` (o clique): não altera as conversões personali
 3. No Gerenciador de Eventos → Eventos de teste, o Lead deve aparecer com telefone, fbp, IP e user agent.
 4. Apague o código de teste e salve.
 
+## 6. external_id nas tags da Meta CAPI (ligar visitas e cliques ao Lead)
+
+O Lead de site leva `external_id` = SHA-256 (hex) do `client_id` do GA4. Se as tags da Meta CAPI do sGTM (PageView e Contact) enviarem o mesmo valor, a Meta associa os eventos seguintes do mesmo navegador à pessoa identificada pelo telefone no Lead.
+
+1. No sGTM, **Modelos → Modelos de variável → Novo → ⋮ → Importar** e escolha [`gtm-server-side/rastrackdash-external-id-variable.tpl`](gtm-server-side/rastrackdash-external-id-variable.tpl). Salve.
+2. **Variáveis → Nova**, tipo **RastrackDash - External ID**, nome `RastrackDash External ID`.
+3. Nas tags `02 - [META CAPI] PageView` e `02 - [META CAPI] Contact - WhatsApp`, no bloco de dados do usuário (User Data), preencha **External ID** com `{{RastrackDash External ID}}`.
+   - O valor já sai com hash (64 caracteres hexadecimais). Se a tag tiver opção de aplicar hash, ela não deve aplicar de novo; a maioria dos modelos reconhece valores já com hash.
+4. No Preview do sGTM, abra a requisição enviada à Meta (aba **Solicitação** → solicitações HTTP de saída para `graph.facebook.com`) e confira que `user_data.external_id` é um texto de 64 caracteres hexadecimais, igual ao valor da variável na aba **Variáveis**.
+
+Não muda o `event_id` nem a deduplicação Pixel/CAPI.
+
 ## O que é gravado
 
 | Campo | Origem | Observação |
